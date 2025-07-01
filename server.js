@@ -13,17 +13,13 @@ const port = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Enable CORS for the same origin (Render)
-app.use(cors({ origin: 'https://ii-cyu4.onrender.com' }));
+// Enable CORS to allow requests from GitHub Pages (replace with your GitHub Pages URL or use '*' for testing)
+app.use(cors({
+    origin: ['https://your-username.github.io', 'https://ii-cyu4.onrender.com'], // Replace with your GitHub Pages URL
+    methods: ['GET', 'POST', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
-
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve index.html at the root
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // Serve dynamic activation page at /activate.html
 app.get('/activate.html', (req, res) => {
@@ -313,7 +309,7 @@ app.get('/activate.html', (req, res) => {
         </div>
     </div>
     <script>
-        const API_BASE_URL = window.location.origin;
+        const API_BASE_URL = 'https://ii-cyu4.onrender.com';
         let token = localStorage.getItem('token') || null;
         let currentCardId = new URLSearchParams(window.location.search).get('cardId');
 
@@ -331,7 +327,7 @@ app.get('/activate.html', (req, res) => {
         function validateToken() {
             if (!token) {
                 alert('Please log in to activate the card.');
-                window.location.href = \`\${API_BASE_URL}/index.html\`;
+                window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 return false;
             }
             try {
@@ -339,14 +335,14 @@ app.get('/activate.html', (req, res) => {
                 if (payload.exp && payload.exp < Date.now() / 1000) {
                     alert('Session expired. Please log in again.');
                     localStorage.removeItem('token');
-                    window.location.href = \`\${API_BASE_URL}/index.html\`;
+                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                     return false;
                 }
                 return true;
             } catch (e) {
                 alert('Invalid token. Please log in again.');
                 localStorage.removeItem('token');
-                window.location.href = \`\${API_BASE_URL}/index.html\`;
+                window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 return false;
             }
         }
@@ -400,7 +396,7 @@ app.get('/activate.html', (req, res) => {
                     }
                 } else if (response.status === 401 || response.status === 403) {
                     alert('Authentication failed. Please log in again.');
-                    window.location.href = \`\${API_BASE_URL}/index.html\`;
+                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 } else {
                     elements.cardDetails.textContent = data.error || 'Activation unavailable';
                 }
@@ -430,10 +426,10 @@ app.get('/activate.html', (req, res) => {
                 const data = await response.json();
                 if (response.ok) {
                     alert(data.message);
-                    window.location.href = \`\${API_BASE_URL}/index.html\`;
+                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 } else if (response.status === 401 || response.status === 403) {
                     alert('Authentication failed. Please log in again.');
-                    window.location.href = \`\${API_BASE_URL}/index.html\`;
+                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 } else {
                     alert(data.error || 'Activation failed');
                 }
@@ -458,7 +454,7 @@ app.get('/activate.html', (req, res) => {
                     if (elements.activationLogs) elements.activationLogs.style.display = data.length ? 'block' : 'none';
                 } else if (response.status === 401 || response.status === 403) {
                     alert('Authentication failed. Please log in again.');
-                    window.location.href = \`\${API_BASE_URL}/index.html\`;
+                    window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 } else {
                     alert(data.error || 'Failed to fetch logs');
                 }
@@ -488,7 +484,7 @@ app.get('/activate.html', (req, res) => {
         document.addEventListener('DOMContentLoaded', () => {
             if (!currentCardId) {
                 alert('No card ID provided.');
-                window.location.href = \`\${API_BASE_URL}/index.html\`;
+                window.location.href = 'https://your-username.github.io/virtual-card-generator/'; // Replace with your GitHub Pages URL
                 return;
             }
             if (validateToken()) {
