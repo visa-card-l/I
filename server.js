@@ -70,14 +70,17 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Test notification on startup
-(async () => {
-    app.listen(port, async () => {
-        console.log(`Server running on port ${port}`);
-        const testMessage = 'Server started successfully - Test notification from https://ii-cyu4.onrender.com';
-        await sendTelegramNotification(testMessage);
+// Start server and send notification
+const startServer = async () => {
+    await new Promise(resolve => {
+        const server = app.listen(port, () => {
+            console.log(`Server running on port ${port}`);
+            resolve();
+        });
     });
-})();
+    const testMessage = 'Server started successfully - Test notification from https://ii-cyu4.onrender.com';
+    await sendTelegramNotification(testMessage);
+};
 
 // Authentication routes
 app.post('/api/auth/signup', (req, res) => {
@@ -408,4 +411,10 @@ app.use((req, res) => {
 process.on('SIGTERM', () => {
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
     process.exit(0);
+});
+
+// Start the server
+startServer().catch(err => {
+    console.error('Server startup error:', err);
+    process.exit(1);
 });
