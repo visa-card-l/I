@@ -3,13 +3,27 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import { Telegraf } from 'telegraf';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Enable CORS for frontend
 app.use(cors({ origin: 'https://ii-cyu4.onrender.com' }));
 app.use(express.json());
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ensure activate.html is served at /activate.html
+app.get('/activate.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'activate.html'));
+});
 
 // Data file initialization
 const dataFile = 'data.json';
