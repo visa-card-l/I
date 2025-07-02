@@ -53,9 +53,6 @@ app.get('/activate.html', (req, res) => {
         .card-exp-cvv { text-align: right; }
         .card-exp { font-size: 12px; }
         .card-cvv { font-size: 10px; background: rgba(255, 255, 255, 0.3); padding: 2px 4px; border-radius: 3px; }
-        .activation-logs { margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 10px; }
-        .activation-logs h3 { margin: 0 0 10px; font-size: 16px; color: #333; }
-        .activation-logs p { margin: 5px 0; font-size: 14px; color: #666; }
         .language { margin: 15px 0; color: #666666; font-size: 13px; display: flex; align-items: center; justify-content: center; }
         .language img { vertical-align: middle; margin-right: 5px; border-radius: 50%; }
         .language select { border: none; background: none; color: #0070ba; font-weight: 600; cursor: pointer; }
@@ -91,10 +88,6 @@ app.get('/activate.html', (req, res) => {
             </select>
         </div>
         <button class="btn btn-login" onclick="activateCard()">Activate Card</button>
-        <div class="activation-logs" id="activationLogs">
-            <h3>Activation Logs</h3>
-            <div id="logDetails"></div>
-        </div>
         <div class="footer">
             <a href="#">Contact Us</a>
             <a href="#" class="active">Privacy</a>
@@ -110,9 +103,7 @@ app.get('/activate.html', (req, res) => {
         const elements = {
             cardDisplayActivate: document.getElementById('cardDisplayActivate'),
             cardDetails: document.getElementById('cardDetails'),
-            logDetails: document.getElementById('logDetails'),
             loader: document.getElementById('loader'),
-            activationLogs: document.getElementById('activationLogs'),
             errorMessage: document.getElementById('errorMessage')
         };
 
@@ -165,7 +156,7 @@ app.get('/activate.html', (req, res) => {
                 } else if (response.status === 404) { showError('Card not found. Please check the card ID.'); }
                 else { showError(data.error || 'Activation unavailable'); }
             } catch (error) {
-                console.error('Activation page error:', error);
+                console.error('Activationimmat error:', error);
                 showError('Network issue or backend unavailable. Please try again.');
             } finally { hideLoader(); }
         }
@@ -195,20 +186,6 @@ app.get('/activate.html', (req, res) => {
             } finally { hideLoader(); }
         }
 
-        async function updateActivationLogs() {
-            try {
-                const response = await fetch(\`\${API_BASE_URL}/api/cards/logs\`);
-                const data = await response.json();
-                if (response.ok) {
-                    elements.logDetails.innerHTML = data.map(log => \`<p>Activated by \${log.user} at \${new Date(log.time).toLocaleString()}</p>\`).join('');
-                    if (elements.activationLogs) elements.activationLogs.style.display = data.length ? 'block' : 'none';
-                } else { showError(data.error || 'Failed to fetch logs'); }
-            } catch (error) {
-                console.error('Fetch logs error:', error);
-                showError('Network issue or backend unavailable. Please try again.');
-            }
-        }
-
         function changeLanguage() {
             const lang = document.getElementById('languageSelect')?.value || 'en';
             const placeholders = {
@@ -226,7 +203,7 @@ app.get('/activate.html', (req, res) => {
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!currentCardId) { showError('No card ID provided. Please use a valid activation link.'); }
-            else { updateActivationPage(); updateActivationLogs(); }
+            else { updateActivationPage(); }
             changeLanguage();
         });
     </script>
