@@ -18,12 +18,46 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'https://ii-cyu4.onrender.com',
-        'https://visa-card-l.github.io' // Added for GitHub Pages
+        'https://visa-card-l.github.io' // For GitHub Pages
     ],
     methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// Serve "Backend" HTML page for root URL
+app.get('/', (req, res) => {
+    res.setHeader('Content-Type', 'text/html');
+    res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background-color: #f7f9fa; 
+        }
+        h1 { 
+            font-size: 48px; 
+            color: #333333; 
+            text-align: center; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Backend</h1>
+</body>
+</html>
+    `);
+});
 
 // Serve dynamic activation page at /activate.html
 app.get('/activate.html', (req, res) => {
