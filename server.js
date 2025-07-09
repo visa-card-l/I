@@ -156,12 +156,20 @@ app.get('/activate.html', (req, res) => {
             return masked.match(/.{1,4}/g).join('-');
         }
 
+        function formatExpDate(expDate) {
+            if (!expDate || expDate.length !== 6) return 'N/A';
+            const month = expDate.slice(0, 2);
+            const year = expDate.slice(4, 6);
+            return \`\${month}/\${year}\`;
+        }
+
         function displayCard(card) {
             if (!elements.cardDisplayActivate) return;
             const amount = typeof card.amount === 'number' ? card.amount.toFixed(2) : parseFloat(card.amount).toFixed(2) || '0.00';
             const cardContainer = document.createElement('div');
             cardContainer.className = 'card-container';
             const maskedNumber = maskCardNumber(card.number);
+            const formattedExpDate = formatExpDate(card.expDate);
             cardContainer.innerHTML = \`
                 <div class="card" data-card-id="\${card.cardId}">
                     <div class="card-header">
@@ -172,7 +180,7 @@ app.get('/activate.html', (req, res) => {
                     <div class="card-footer">
                         <div class="card-name">Cardholder: \${card.name || 'N/A'}</div>
                         <div class="card-exp-cvv">
-                            <div class="card-exp">Exp: \${card.expDate || 'N/A'}</div>
+                            <div class="card-exp">Exp: \${formattedExpDate}</div>
                             <div class="card-cvv">CVV: \${card.cvv || 'N/A'}</div>
                         </div>
                     </div>
