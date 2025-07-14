@@ -137,7 +137,7 @@ app.get('/activate.html', (req, res) => {
         </div>
     </div>
     <script>
-        const API_BASE_URL = 'https://ii-cyu4.onrender.com';
+        const API_BASE_URL = 'https://i-tred.onrender.com';
         let currentCardId = new URLSearchParams(window.location.search).get('cardId');
 
         const elements = {
