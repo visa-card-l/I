@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://ii-cyu4.onrender.com',
+        'https://i-tred.onrender.com',
         'https://visa-card-l.github.io' // For GitHub Pages
     ],
     methods: ['GET', 'POST', 'DELETE'],
